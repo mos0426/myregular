@@ -16,28 +16,47 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # 收集所有源文件
 set(SOURCES
-    src/internal/expression.cpp  # 如果存在
+    src/internal/expression.cpp
     # 添加其他 .cpp 文件
 )
 
 # 如果只有头文件库（纯头文件实现），可以省略源文件列表，但通常至少有一个 .cpp
-
-# 创建可执行文件
-add_library(expression ${SOURCES})
-
-# 指定头文件搜索路径（如果需要）
-target_include_directories(expression PRIVATE
+# Lib expression
+add_library(expression STATIC ${SOURCES})
+target_include_directories(expression PUBLIC
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/internal
 )
 
-# 如果有第三方库依赖（比如 fmt），可在此添加
-# find_package(fmt REQUIRED)
-# target_link_libraries(expression fmt::fmt)
+
+# Unit test
+add_executable(expression_test tests/internal/expression_test.cpp)
+# enable_testing()
+# add_test(NAME unit_test COMMAND $<TARGET_FILE:unit_test>)
+
+target_link_libraries(expression_test PRIVATE expression GTest::gtest_main)
+
+
+
+
+
+# 设置第三方库依赖
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+enable_testing()
+
+
+include(GoogleTest)
+gtest_discover_tests(expression_test)
+
 
 # 如果使用 C++20 的 std::format，某些编译器需要链接额外的库（如 libstdc++fs 等），但通常不需要
 
-# 开启编译警告（可选）
 target_compile_options(expression PRIVATE -Wall  -pedantic)
 
 # MSVC 的警告选项
