@@ -1,0 +1,48 @@
+# 要求最低 CMake 版本
+cmake_minimum_required(VERSION 4.3)
+
+# 项目名称
+project(MyRegular)
+
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 如果使用 C++20 的 std::format，可改为 20
+# set(CMAKE_CXX_STANDARD 20)
+
+# 设置可执行文件的输出目录（可选）
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# 收集所有源文件
+set(SOURCES
+    src/internal/expression.cpp  # 如果存在
+    # 添加其他 .cpp 文件
+)
+
+# 如果只有头文件库（纯头文件实现），可以省略源文件列表，但通常至少有一个 .cpp
+
+# 创建可执行文件
+add_library(expression ${SOURCES})
+
+# 指定头文件搜索路径（如果需要）
+target_include_directories(expression PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/internal
+)
+
+# 如果有第三方库依赖（比如 fmt），可在此添加
+# find_package(fmt REQUIRED)
+# target_link_libraries(expression fmt::fmt)
+
+# 如果使用 C++20 的 std::format，某些编译器需要链接额外的库（如 libstdc++fs 等），但通常不需要
+
+# 开启编译警告（可选）
+target_compile_options(expression PRIVATE -Wall  -pedantic)
+
+# MSVC 的警告选项
+if(MSVC)
+    target_compile_options(expression PRIVATE /W4)
+    
+
+endif()
