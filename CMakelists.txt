@@ -24,8 +24,8 @@ set(SOURCES
 # Lib expression
 add_library(expression STATIC ${SOURCES})
 target_include_directories(expression PUBLIC
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/internal
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/internal
 )
 
 

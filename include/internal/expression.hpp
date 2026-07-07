@@ -1,6 +1,5 @@
 #include <string>
 #include <iostream>
-#include <optional>
 #include <format>
 
 enum class TokenType{
@@ -18,7 +17,7 @@ class Token{
 public:
     const TokenType type;
     const std::string &value;
-
+    
     Token(TokenType t, std::string &s):
         type(t), value(s) {};
     std::string toString() const;
@@ -28,8 +27,8 @@ public:
 class AST{
 public:
     Token &token;
-    std::optional<AST> &left;
-    std::optional<AST> &right;
+    AST *left;
+    AST *right;
     
     //优先级， 数值越高优先级越高
     // OR = 0   |
@@ -43,21 +42,27 @@ public:
     //CHARACTER = 9   <character> .
     int precedence;
 
-    AST(Token &t, std::optional<AST> &l, std::optional<AST> &r, int p):
-        token(t), left(l), right(r), precedence(p){};
+    AST(Token &token, AST *left, AST *right, int precedence):
+        token(token), left(left), right(right), precedence(precedence){};
 
     std::string format(const std::string &format_spec="-") const;
 
 };
 
 
-// class  Lexer{
-// public:
-//     std::string &expression;
+class  Lexer{
+public:
+    std::string &expression;
 
-// private:
-//     int length;
-    
-//     int pos;
-//     std::optional<Token> &current_token;
-// }
+    Lexer(std::string &expression):
+    expression(expression){
+        current = expression.begin();
+        pos = 0;
+        current_token = nullptr;
+    };
+
+private:
+    std::string::iterator current;
+    int pos;
+    Token *current_token;
+};

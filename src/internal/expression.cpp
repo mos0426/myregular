@@ -29,8 +29,8 @@ std::ostream &operator<<(std::ostream &os, const Token &token){
 
 std::string AST::format(const std::string &format_spec) const {
 
-        std::string left_format = "\n" + left.has_value()?left.value().format(format_spec):"None";
-        std::string right_format = "\n" + right.has_value()?right.value().format(format_spec):"None";
+        std::string left_format = "\n" + (left == nullptr)? (*left).format(format_spec):"None";
+        std::string right_format = "\n" + (right == nullptr)?(*right).format(format_spec):"None";
         
         return std::format("[{}AST:\n {}token:{}\n {}left:{}\n {}right:{}]",
                        format_spec, format_spec, token.toString(),
