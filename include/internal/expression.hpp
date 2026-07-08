@@ -69,6 +69,10 @@ public:
         return current_token;
     }
 
+    const int get_pos(){
+        return pos;
+    }
+
 private:
     std::string::iterator current;
     int pos;
