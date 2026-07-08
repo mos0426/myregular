@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 #include <format>
+#include <memory>
+
 
 enum class TokenType{
     CHARACTER,
@@ -16,10 +18,10 @@ enum class TokenType{
 class Token{
 public:
     const TokenType type;
-    const std::string &value;
+    const char value;
     
-    Token(TokenType t, std::string &s):
-        type(t), value(s) {};
+    Token(TokenType t, char c):
+        type(t), value(c) {};
     std::string toString() const;
     friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
@@ -27,8 +29,8 @@ public:
 class AST{
 public:
     Token &token;
-    AST *left;
-    AST *right;
+    std::shared_ptr<AST> left;
+    std::shared_ptr<AST> right;
     
     //优先级， 数值越高优先级越高
     // OR = 0   |
@@ -61,8 +63,16 @@ public:
         current_token = nullptr;
     };
 
+    const std::shared_ptr<Token> next_token();
+
+    const std::shared_ptr<Token> get_curent_token(){
+        return current_token;
+    }
+
 private:
     std::string::iterator current;
     int pos;
-    Token *current_token;
+    std::shared_ptr<Token> current_token;
+
+    const Token tokenize(char c);
 };

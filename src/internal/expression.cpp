@@ -37,3 +37,43 @@ std::string AST::format(const std::string &format_spec) const {
                        format_spec, left_format,
                        format_spec, right_format);
     };
+
+
+const std::shared_ptr<Token> Lexer::next_token(){
+    if (current == expression.end())
+        return nullptr;
+    else
+    {
+        current ++;
+        if (current == expression.end())
+            current_token = nullptr;
+        else
+            current_token = std::make_shared<Token>(tokenize(*current));
+        return current_token;
+    }
+}
+
+
+const Token Lexer::tokenize(char c){
+    switch (c)
+    {
+    case '*':
+    case '+':
+    case '?':
+        return Token(TokenType::UNARY_POSTFIX_OPERATOR, c);
+    case '\\':
+        return Token(TokenType::UNARY_PREFIX_OPERATOR, c);
+    case '|':
+        return  Token(TokenType::INFIX_OPERATOR, c);
+    case '(':
+    case ')':
+        return Token(TokenType::GROUP, c);
+    case '[':
+    case ']':
+        return Token(TokenType::BRACKET, c);
+    case '.':
+        return Token(TokenType::WILDCARD, c);
+    default:
+        return Token(TokenType::CHARACTER, c);
+    }
+}
