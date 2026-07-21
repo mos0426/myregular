@@ -28,6 +28,9 @@ target_include_directories(expression PUBLIC
     ${PROJECT_SOURCE_DIR}/include/internal
 )
 
+add_library(utf8 STATIC src/internal/utility/utf8.cpp)
+target_include_directories(utf8 PUBLIC include/internal/utility)
+
 
 # Unit test
 add_executable(expression_test tests/internal/expression_test.cpp)
@@ -35,6 +38,9 @@ add_executable(expression_test tests/internal/expression_test.cpp)
 # add_test(NAME unit_test COMMAND $<TARGET_FILE:unit_test>)
 
 target_link_libraries(expression_test PRIVATE expression GTest::gtest_main)
+
+add_executable(utf8_test tests/internal/utility/utf8_test.cpp)
+target_link_libraries(utf8_test PRIVATE utf8 GTest::gtest_main)
 
 
 
@@ -53,6 +59,7 @@ enable_testing()
 
 include(GoogleTest)
 gtest_discover_tests(expression_test)
+gtest_discover_tests(utf8_test)
 
 
 # 如果使用 C++20 的 std::format，某些编译器需要链接额外的库（如 libstdc++fs 等），但通常不需要
