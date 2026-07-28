@@ -4,7 +4,7 @@
 #include "utf8.hpp"
 
 
-DecodeResult decode_codepoint(const char *first, const char *last){
+DecodeResult decode_codepoint( std::string_view::const_iterator first, std::string_view::const_iterator end){
 
     unsigned char c = static_cast<unsigned char>(*first);
     uint32_t code_point = 0;
@@ -37,16 +37,16 @@ DecodeResult decode_codepoint(const char *first, const char *last){
     else
     {
         // 未识别出首字符，返回替换字符 0xFFFD
-        return std::pair(0xFFFD, first + 1);
+        return {0xFFFD, first + 1};
     }
 
-    if ((first + extra_bytes) >= last)
+    if ((first + extra_bytes) >= end)
     {   
         // 不完整序列，返回替换字符 0xFFFD
-        return std::pair(0xFFFD, last);
+        return {0xFFFD, end};
     }
 
-    const char *p = first + 1;
+    auto p = first + 1;
     for (int i = 0; i < extra_bytes; i++)
     {   
         c = static_cast<unsigned char>(*p);

@@ -8,17 +8,19 @@
 
 TEST(decode_codepoint_test, base_test){
     std::string s = "abc";
-    DecodeResult r = decode_codepoint(s.c_str(), &s.back());
+    std::string_view sv = s;
+    DecodeResult r = decode_codepoint(sv.begin(), sv.end());
     EXPECT_EQ(r.first, 97);
-    EXPECT_EQ(r.second, s.c_str()+1);
+    EXPECT_EQ(r.second, sv.begin() + 1);
 
     std::string chinese_string = "中文";
-    DecodeResult r2 = decode_codepoint(chinese_string.c_str(), &chinese_string.back());
+    std::string_view chinese_sv = chinese_string;
+    DecodeResult r2 = decode_codepoint(chinese_sv.begin(), chinese_sv.end());
     EXPECT_EQ(r2.first, 20013);
-    DecodeResult r3 = decode_codepoint(chinese_string.c_str()+1, &chinese_string.back());
+    DecodeResult r3 = decode_codepoint(chinese_sv.begin() + 1, chinese_sv.end());
     EXPECT_EQ(r3.first, 0xFFFD);
-    EXPECT_EQ(r3.second, chinese_string.c_str()+2);
-    DecodeResult r4 = decode_codepoint(chinese_string.c_str(), chinese_string.c_str()+2);
+    EXPECT_EQ(r3.second, chinese_sv.begin() + 2);
+    DecodeResult r4 = decode_codepoint(chinese_sv.begin(), chinese_sv.begin() + 2);
     EXPECT_EQ(r4.first, 0xFFFD);
-    EXPECT_EQ(r4.second, chinese_string.c_str()+2);
+    EXPECT_EQ(r4.second, chinese_sv.begin() + 2);
 }

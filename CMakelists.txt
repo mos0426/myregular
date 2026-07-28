@@ -14,22 +14,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 设置可执行文件的输出目录（可选）
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# 收集所有源文件
-set(SOURCES
-    src/internal/expression.cpp
-    # 添加其他 .cpp 文件
-)
 
 # 如果只有头文件库（纯头文件实现），可以省略源文件列表，但通常至少有一个 .cpp
 # Lib expression
-add_library(expression STATIC ${SOURCES})
-target_include_directories(expression PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include/internal
+add_library(expression STATIC 
+    src/internal/expression/error.cpp
+    src/internal/expression/lexer.cpp
+    src/internal/expression/parse.cpp
 )
+target_include_directories(expression PUBLIC include/internal/expression)
+target_link_libraries(expression PRIVATE utility)
 
-add_library(utf8 STATIC src/internal/utility/utf8.cpp)
-target_include_directories(utf8 PUBLIC include/internal/utility)
+add_library(utility STATIC src/internal/utility/utf8.cpp)
+target_include_directories(utility PUBLIC include/internal/utility)
 
 
 # Unit test
@@ -40,7 +37,7 @@ add_executable(expression_test tests/internal/expression_test.cpp)
 target_link_libraries(expression_test PRIVATE expression GTest::gtest_main)
 
 add_executable(utf8_test tests/internal/utility/utf8_test.cpp)
-target_link_libraries(utf8_test PRIVATE utf8 GTest::gtest_main)
+target_link_libraries(utf8_test PRIVATE utility GTest::gtest_main)
 
 
 
