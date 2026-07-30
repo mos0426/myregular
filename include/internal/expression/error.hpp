@@ -26,3 +26,13 @@ public:
         unsigned int pos):
         ExpressionError(message, pattern, pos, "Lexer Error"){};
 };
+
+
+class ParserError: public ExpressionError{
+public:
+    ParserError(
+        const std::string &message,
+        const std::string_view &pattern, 
+        unsigned int pos):
+        ExpressionError(message, pattern, pos, "Parser Error"){};
+};
