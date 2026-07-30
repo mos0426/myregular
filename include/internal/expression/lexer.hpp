@@ -20,7 +20,7 @@ public:
 
 
 private:
-    // current 指向的是下一个 token 的首字节位置，如果已经完全解析完，则等于 expression 的尾后指针
+    // current 指向的是下一个 token 的首字节位置，如果已经完全解析完，则等于 expression 的尾后迭代器
     std::string_view::const_iterator current;
     std::shared_ptr<Token> current_token;
 
