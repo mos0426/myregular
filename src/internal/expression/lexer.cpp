@@ -1,5 +1,9 @@
-#include <string_view>
 #include <cassert>
+#include <utility>
+#include <string_view>
+#include <memory>
+#include <variant>
+#include <cstdint>
 #include <utility>
 
 #include "lexer.hpp"
