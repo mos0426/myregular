@@ -12,11 +12,11 @@ public:
 
     explicit Lexer(std::string_view &expression); 
 
-    const std::shared_ptr<Token> next_token();
+    inline const std::shared_ptr<Token> next_token();
 
-    const std::shared_ptr<Token> get_current_token() {return current_token;};
+    inline const std::shared_ptr<Token> get_current_token() {return current_token;};
 
-    const unsigned int  get_pos() {return (unsigned int)(current-expression.begin());};
+    inline const unsigned int  get_pos() {return (unsigned int)(current-expression.begin());};
 
 
 private:

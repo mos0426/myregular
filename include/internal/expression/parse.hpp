@@ -6,6 +6,12 @@
 
 class AST;
 
+std::unique_ptr<AST> parse(std::string_view &expression);
+
+struct UnionNode{
+    std::unique_ptr<AST> left;
+    std::unique_ptr<AST> right;
+};
 
 struct ConcatenationNode{
     std::unique_ptr<AST> left;
@@ -38,10 +44,12 @@ struct CharRange{
 
 struct CharClassNode{
     std::vector<CharRange> ranges;
+    bool negated = false; // 是否为取反的字符类
 };
 
 
 using ASTNode = std::variant<
+    UnionNode,
     PlusNode,
     ConcatenationNode, 
     StarNode, 
@@ -53,11 +61,9 @@ using ASTNode = std::variant<
 
 class AST{
 public:
-    std::unique_ptr<ASTNode> data;
+    ASTNode data;
 
     template<typename T>
-    AST(T &&data): data(data){};
+    AST(T &&data): data(std::forward<T>(data)){};
 };
 
-
-AST parse(std::string_view &expression);

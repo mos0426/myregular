@@ -28,7 +28,7 @@ const std::shared_ptr<Token> Lexer::next_token(){
     else
     {
         current = expression.cend();
-        current_token = nullptr;
+        current_token = std::make_shared<Token>(Token{Strcutural::END, 0});
     }
     return current_token;
 };
@@ -37,15 +37,15 @@ const std::shared_ptr<Token> Lexer::next_token(){
 std::pair<Token,std::string_view::const_iterator> Lexer::build_token(){
     switch (*current)
     {
-    case '*': return {Token{PostfixOperator::STAR, 0}, current+1};
-    case '+': return {Token{PostfixOperator::PLUS, 0}, current+1};
-    case '?': return {Token{PostfixOperator::QUEST, 0}, current+1};
-    case '(': return {Token{Atom::LPARENT, 0}, current+1};
-    case ')': return {Token{Strcutural::RPARENT, 0}, current+1};
-    case '[': return {Token{Atom::LBRAKET, 0}, current+1};
-    case ']': return {Token{Strcutural::RBRAKET, 0}, current+1};
-    case '|': return {Token{InfixOperator::PIPE, 0}, current+1};
-    case '.': return {Token{Atom::DOT, 0}, current+1};
+    case '*': return {Token{PostfixOperator::STAR, '*'}, current+1};
+    case '+': return {Token{PostfixOperator::PLUS, '+'}, current+1};
+    case '?': return {Token{PostfixOperator::QUEST, '?'}, current+1};
+    case '(': return {Token{Atom::LPARENT, '('}, current+1};
+    case ')': return {Token{Strcutural::RPARENT, ')'}, current+1};
+    case '[': return {Token{Atom::LBRAKET, '['}, current+1};
+    case ']': return {Token{Strcutural::RBRAKET, ']'}, current+1};
+    case '|': return {Token{InfixOperator::PIPE, '|'}, current+1};
+    case '.': return {Token{Atom::DOT, '.'}, current+1};
     case '\\': return build_escape_token();
     default:{
         auto [codepoint, next] = decode_codepoint(current, expression.cend());
@@ -62,15 +62,15 @@ std::pair<Token, std::string_view::const_iterator> Lexer::build_escape_token(){
     
     switch (*(current+1))
     {
-    case 'w': return {Token(Escape::WORD, 0), current+2};
-    case 'W': return {Token(Escape::NON_WORD, 0), current+2};
-    case 'd': return {Token(Escape::DIGIT, 0), current+2};
-    case 'D': return {Token(Escape::NON_DIGIT, 0), current+2};
-    case 'a': return {Token(Escape::ALPHABETIC, 0), current+2};
-    case 's': return {Token(Escape::WHITESPACE, 0), current+2};
-    case 'S': return {Token(Escape::NON_WHITESPACE, 0), current+2};
-    case 'l': return {Token(Escape::LOWERCASE, 0), current+2};
-    case 'u': return {Token(Escape::UPPERCASE, 0), current+2};
+    case 'w': return {Token(Escape::WORD, 'w'), current+2};
+    case 'W': return {Token(Escape::NON_WORD, 'W'), current+2};
+    case 'd': return {Token(Escape::DIGIT, 'd'), current+2};
+    case 'D': return {Token(Escape::NON_DIGIT, 'D'), current+2};
+    case 'a': return {Token(Escape::ALPHABETIC, 'a'), current+2};
+    case 's': return {Token(Escape::WHITESPACE, 's'), current+2};
+    case 'S': return {Token(Escape::NON_WHITESPACE, 'S'), current+2};
+    case 'l': return {Token(Escape::LOWERCASE, 'l'), current+2};
+    case 'u': return {Token(Escape::UPPERCASE, 'u'), current+2};
     default: {
         auto [codepoint, next] = decode_codepoint(current, expression.cend());
         return {Token(Atom::CHAR, codepoint), next};
