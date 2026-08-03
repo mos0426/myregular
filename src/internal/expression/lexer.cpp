@@ -11,69 +11,68 @@
 #include "error.hpp"
 
 
-Lexer::Lexer(std::string_view &expression):
+Lexer::Lexer(std::string_view expression):
     expression(expression){
         assert(!expression.empty());
         current = expression.cbegin();
-        current_token = nullptr;
+        build_token();
 };
 
 
-const std::shared_ptr<Token> Lexer::next_token(){
-    if (current<expression.cend())
+void Lexer::next_token(){
+    if (!is_end())
     {   
-        auto [token, next] = build_token();
-        current_token = std::make_shared<Token>(token);
+        build_token();
     }
     else
     {
-        current = expression.cend();
-        current_token = std::make_shared<Token>(Token{Strcutural::END, 0});
+        current_token = Token{Strcutural::END, 0};
     }
-    return current_token;
 };
 
 
-std::pair<Token,std::string_view::const_iterator> Lexer::build_token(){
+void Lexer::build_token(){
     switch (*current)
     {
-    case '*': return {Token{PostfixOperator::STAR, '*'}, current+1};
-    case '+': return {Token{PostfixOperator::PLUS, '+'}, current+1};
-    case '?': return {Token{PostfixOperator::QUEST, '?'}, current+1};
-    case '(': return {Token{Atom::LPARENT, '('}, current+1};
-    case ')': return {Token{Strcutural::RPARENT, ')'}, current+1};
-    case '[': return {Token{Atom::LBRAKET, '['}, current+1};
-    case ']': return {Token{Strcutural::RBRAKET, ']'}, current+1};
-    case '|': return {Token{InfixOperator::PIPE, '|'}, current+1};
-    case '.': return {Token{Atom::DOT, '.'}, current+1};
-    case '\\': return build_escape_token();
+    case '*': current_token = Token{PostfixOperator::STAR, '*'}; current++; break;
+    case '+': current_token = Token{PostfixOperator::PLUS, '+'}; current++; break;
+    case '?': current_token = Token{PostfixOperator::QUEST, '?'}; current++; break;
+    case '(': current_token = Token{Atom::LPARENT, '('}; current++; break;
+    case ')': current_token = Token{Strcutural::RPARENT, ')'}; current++; break;
+    case '[': current_token = Token{Atom::LBRAKET, '['}; current++; break;
+    case ']': current_token = Token{Strcutural::RBRAKET, ']'}; current++; break;
+    case '|': current_token = Token{InfixOperator::PIPE, '|'}; current++; break;
+    case '.': current_token = Token{Atom::DOT, '.'}; current++; break;
+    case '\\': build_escape_token(); break;
     default:{
         auto [codepoint, next] = decode_codepoint(current, expression.cend());
-        return {Token(Atom::CHAR, codepoint), next};
+        current_token = Token(Atom::CHAR, codepoint);
+        current = next;
     }
     }
 };
 
 
-std::pair<Token, std::string_view::const_iterator> Lexer::build_escape_token(){
+void Lexer::build_escape_token(){
     assert(*current == '\\');
 
     if ((current+1)==expression.end()) throw LexerError("无效的转义序列：表达式以反斜杠结尾", expression, get_pos());
     
     switch (*(current+1))
     {
-    case 'w': return {Token(Escape::WORD, 'w'), current+2};
-    case 'W': return {Token(Escape::NON_WORD, 'W'), current+2};
-    case 'd': return {Token(Escape::DIGIT, 'd'), current+2};
-    case 'D': return {Token(Escape::NON_DIGIT, 'D'), current+2};
-    case 'a': return {Token(Escape::ALPHABETIC, 'a'), current+2};
-    case 's': return {Token(Escape::WHITESPACE, 's'), current+2};
-    case 'S': return {Token(Escape::NON_WHITESPACE, 'S'), current+2};
-    case 'l': return {Token(Escape::LOWERCASE, 'l'), current+2};
-    case 'u': return {Token(Escape::UPPERCASE, 'u'), current+2};
+    case 'w': current_token = Token(Escape::WORD, 'w'); current += 2; break;
+    case 'W': current_token = Token(Escape::NON_WORD, 'W'); current += 2; break;
+    case 'd': current_token = Token(Escape::DIGIT, 'd'); current += 2; break;
+    case 'D': current_token = Token(Escape::NON_DIGIT, 'D'); current += 2; break;
+    case 'a': current_token = Token(Escape::ALPHABETIC, 'a'); current += 2; break;
+    case 's': current_token = Token(Escape::WHITESPACE, 's'); current += 2; break;
+    case 'S': current_token = Token(Escape::NON_WHITESPACE, 'S'); current += 2; break;
+    case 'l': current_token = Token(Escape::LOWERCASE, 'l'); current += 2; break;
+    case 'u': current_token = Token(Escape::UPPERCASE, 'u'); current += 2; break;
     default: {
         auto [codepoint, next] = decode_codepoint(current, expression.cend());
-        return {Token(Atom::CHAR, codepoint), next};
+        current_token = Token(Atom::CHAR, codepoint);
+        current = next;
     }
     }
 };

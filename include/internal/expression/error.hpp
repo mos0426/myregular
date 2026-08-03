@@ -6,14 +6,14 @@ public:
     ExpressionError(
         const std::string &message,
         const std::string_view &pattern, 
-        unsigned int pos, 
+        std::size_t pos, 
         const std::string &prefix="Expression Error");
 
     const char *what() const noexcept override{return full_message_.c_str();};
 private:
     std::string message_;
     std::string pattern_;
-    unsigned pos_;
+    std::size_t pos_;
     std::string full_message_;
 };
 
@@ -23,7 +23,7 @@ public:
     LexerError(
         const std::string &message,
         const std::string_view &pattern, 
-        unsigned int pos):
+        std::size_t pos):
         ExpressionError(message, pattern, pos, "Lexer Error"){};
 };
 
@@ -33,6 +33,6 @@ public:
     ParserError(
         const std::string &message,
         const std::string_view &pattern, 
-        unsigned int pos):
+        std::size_t pos):
         ExpressionError(message, pattern, pos, "Parser Error"){};
 };

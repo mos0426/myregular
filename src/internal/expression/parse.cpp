@@ -24,7 +24,6 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer);
 
 std::unique_ptr<AST> parse(std::string_view &expression){
     Lexer lexer(expression);
-    auto token = lexer.next_token();
     return parse_expression(lexer);
 }
 
@@ -39,16 +38,16 @@ static std::unique_ptr<AST> parse_expression(Lexer &lexer){
 static std::unique_ptr<AST> _parse_expression(Lexer &lexer, std::unique_ptr<AST> left){
     // parse_expression 的递归辅助函数，用于处理 '|' 操作符
     // 默认情况下，lexrer 已经消耗了左操作数，当前 token 是 '|' 或是结束标识符 ')' 或 'END'
-    std::shared_ptr<Token> token = lexer.get_current_token();
-    if (std::holds_alternative<InfixOperator>(token->type) && std::get<InfixOperator>(token->type) == InfixOperator::PIPE)
+    Token token = lexer.get_current_token();
+    if (std::holds_alternative<InfixOperator>(token.type) && std::get<InfixOperator>(token.type) == InfixOperator::PIPE)
     {
         lexer.next_token(); // 消耗 '|'
         std::unique_ptr<AST> right = parse_concatenation(lexer);
         return _parse_expression(lexer, std::make_unique<AST>(UnionNode{std::move(left), std::move(right)}));
     }
     else if (
-        std::holds_alternative<Strcutural>(token->type) &&
-        (std::get<Strcutural>(token->type) == Strcutural::RPARENT || std::get<Strcutural>(token->type) == Strcutural::END)
+        std::holds_alternative<Strcutural>(token.type) &&
+        (std::get<Strcutural>(token.type) == Strcutural::RPARENT || std::get<Strcutural>(token.type) == Strcutural::END)
     )
     {
         // 遇到 ')' 或 'END'，返回左操作数，交给上层处理
@@ -56,7 +55,7 @@ static std::unique_ptr<AST> _parse_expression(Lexer &lexer, std::unique_ptr<AST>
     }
     else
     {
-        throw ParserError("无效的表达式", lexer.expression, lexer.get_pos());
+        throw ParserError("无效的表达式", lexer.get_expression(), lexer.get_pos());
     }
     
 }
@@ -73,13 +72,13 @@ static std::unique_ptr<AST> parse_concatenation(Lexer &lexer){
 
 static std::unique_ptr<AST> _parse_concatenation(Lexer &lexer, std::unique_ptr<AST> left){
 
-    std::shared_ptr<Token> token = lexer.get_current_token();
+    Token token = lexer.get_current_token();
     std::unique_ptr<AST> right = nullptr;
-    if (std::holds_alternative<Strcutural>(token->type) && (std::get<Strcutural>(token->type) == Strcutural::RPARENT || std::get<Strcutural>(token->type) == Strcutural::END)){
+    if (std::holds_alternative<Strcutural>(token.type) && (std::get<Strcutural>(token.type) == Strcutural::RPARENT || std::get<Strcutural>(token.type) == Strcutural::END)){
         // 遇到 ')' 或者 END，返回左操作数，交给上层处理
         return left;
     }
-    else if (std::holds_alternative<InfixOperator>(token->type) && std::get<InfixOperator>(token->type) == InfixOperator::PIPE){
+    else if (std::holds_alternative<InfixOperator>(token.type) && std::get<InfixOperator>(token.type) == InfixOperator::PIPE){
         // 遇到 '|'，返回左操作数，交给上层处理
         return left;
     }
@@ -96,10 +95,10 @@ static std::unique_ptr<AST> parse_factor(Lexer &lexer){
     // factor <- atom [* | + | ? | repetition]
     std::unique_ptr<AST> atom = parse_atom(lexer);
 
-    std::shared_ptr<Token> token = lexer.get_current_token();
+    Token token = lexer.get_current_token();
 
     // 处理后缀操作符
-    if (auto *postfix = std::get_if<PostfixOperator>(&token->type)){
+    if (auto *postfix = std::get_if<PostfixOperator>(&token.type)){
         switch (*postfix)
         {
         case PostfixOperator::STAR:
@@ -112,12 +111,12 @@ static std::unique_ptr<AST> parse_factor(Lexer &lexer){
             lexer.next_token(); // 消耗当前 token
             return std::make_unique<AST>(RepetitionNode{std::move(atom), 0, 1});
         default:
-            throw ParserError("无效的后缀操作符", lexer.expression, lexer.get_pos());
+            throw ParserError("无效的后缀操作符", lexer.get_expression(), lexer.get_pos());
         }
     }
 
     // 处理重复操作符 {m,n}
-    if (auto lbrace = std::get_if<Strcutural>(&token->type)){
+    if (auto *lbrace = std::get_if<Strcutural>(&token.type)){
         if (*lbrace == Strcutural::LBRACE){
             return parse_repetition(lexer, std::move(atom));
         }
@@ -131,19 +130,19 @@ static std::unique_ptr<AST> parse_factor(Lexer &lexer){
 static std::unique_ptr<AST> parse_atom(Lexer &lexer){
     // 解析一个原子，原子可以是字符、转义字符、括号表达式、字符类等
     // atom <- CHAR | ESCAPE | '(' expression ')' | '[' char_class ']' | '.'
-    std::shared_ptr<Token> token = lexer.get_current_token();
-    if (auto *atom = std::get_if<Atom>(&token->type)){
+    Token token = lexer.get_current_token();
+    if (auto *atom = std::get_if<Atom>(&token.type)){
         switch (*atom)
         {
         case Atom::CHAR:
             lexer.next_token(); // 消耗当前 token
-            return std::make_unique<AST>(CharNode{token->value});
+            return std::make_unique<AST>(CharNode{token.value});
         case Atom::LPARENT:{
             lexer.next_token(); // 消耗 '('
             std::unique_ptr<AST> expr = parse_expression(lexer);
             token = lexer.get_current_token();
-            if ( !std::holds_alternative<Strcutural>(token->type) || std::get<Strcutural>(token->type) != Strcutural::RPARENT){
-                throw ParserError("缺少 ')'", lexer.expression, lexer.get_pos());
+            if ( !std::holds_alternative<Strcutural>(token.type) || std::get<Strcutural>(token.type) != Strcutural::RPARENT){
+                throw ParserError("缺少 ')'", lexer.get_expression(), lexer.get_pos());
             }
             lexer.next_token(); // 消耗 ')'
             return expr;
@@ -158,14 +157,14 @@ static std::unique_ptr<AST> parse_atom(Lexer &lexer){
             } 
             );
         default:
-            throw ParserError("无效的原子类型", lexer.expression, lexer.get_pos());
+            throw ParserError("无效的原子类型", lexer.get_expression(), lexer.get_pos());
         }
     }
-    else if (std::holds_alternative<Escape>(token->type)){
+    else if (std::holds_alternative<Escape>(token.type)){
         return parse_especial(lexer);
     }
     else{
-        throw ParserError("无效的原子类型", lexer.expression, lexer.get_pos());
+        throw ParserError("无效的原子类型", lexer.get_expression(), lexer.get_pos());
     }
 };
 
@@ -173,17 +172,17 @@ static std::unique_ptr<AST> parse_atom(Lexer &lexer){
 static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> left){
     // 解析重复操作符 {m,n}
     // repetition <- '{' NUMBER [',' NUMBER] '}'
-    std::shared_ptr<Token> token = lexer.next_token(); // 消耗 '{'
+    lexer.next_token(); // 消耗 '{'
     unsigned int min = 0, max = 0;
     try{
         min = parse_number(lexer);
     }
     catch (const ParserError &){
-        throw ParserError("无效的重复操作符：缺少最小重复次数", lexer.expression, lexer.get_pos());
+        throw ParserError("无效的重复操作符：缺少最小重复次数", lexer.get_expression(), lexer.get_pos());
     }
 
-    token = lexer.get_current_token();
-    if (token && token->value == ','){
+    Token token = lexer.get_current_token();
+    if (token.value == ','){
         lexer.next_token(); // 消耗 ','
         max = parse_number(lexer);
     }
@@ -193,11 +192,11 @@ static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> 
 
     // 检查是否有 '}'
     token = lexer.get_current_token();
-    if (token && std::holds_alternative<Strcutural>(token->type) && std::get<Strcutural>(token->type) == Strcutural::RBRACE){
+    if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::RBRACE){
         lexer.next_token(); // 消耗 '}'
     }
     else{
-        throw ParserError("缺少 '}'", lexer.expression, lexer.get_pos());
+        throw ParserError("缺少 '}'", lexer.get_expression(), lexer.get_pos());
     }
 
     return std::make_unique<AST>(RepetitionNode{std::move(left), min, max});
@@ -207,20 +206,20 @@ static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> 
 static uint32_t parse_number(Lexer &lexer){
     // 解析一个数字
     // NUMBER <- [0-9]+
-    std::shared_ptr<Token> token = lexer.get_current_token();
+    Token token = lexer.get_current_token();
     
-    if (auto *atom = std::get_if<Atom>(&token->type)){
-        if (*atom == Atom::CHAR && token->value >= '0' && token->value <= '9'){
-            uint32_t number = token->value - '0';
+    if (auto *atom = std::get_if<Atom>(&token.type)){
+        if (*atom == Atom::CHAR && token.value >= '0' && token.value <= '9'){
+            uint32_t number = token.value - '0';
             lexer.next_token(); // 消耗数字
             
             while (true)
             {
                 token = lexer.get_current_token();
-                if (!token) return number; // 没有更多的 token，返回当前数字
-                if (auto *atom2 = std::get_if<Atom>(&token->type)){
-                    if (*atom2 == Atom::CHAR && token->value >= '0' && token->value <= '9'){
-                        number = number * 10 + (token->value - '0');
+                if (lexer.is_end()) return number; // 没有更多的 token，返回当前数字
+                if (auto *atom2 = std::get_if<Atom>(&token.type)){
+                    if (*atom2 == Atom::CHAR && token.value >= '0' && token.value <= '9'){
+                        number = number * 10 + (token.value - '0');
                         lexer.next_token(); // 消耗数字
                         continue;
                     }
@@ -230,16 +229,16 @@ static uint32_t parse_number(Lexer &lexer){
             
         }
     }
-    throw ParserError("无效的数字", lexer.expression, lexer.get_pos());
+    throw ParserError("无效的数字", lexer.get_expression(), lexer.get_pos());
     
 }
 
 
 static std::unique_ptr<AST> parse_especial(Lexer &lexer){
     // 解析转义字符
-    std::shared_ptr<Token> token = lexer.get_current_token();
+    Token token = lexer.get_current_token();
 
-    if (auto *escape = std::get_if<Escape>(&token->type)){
+    if (auto *escape = std::get_if<Escape>(&token.type)){
         lexer.next_token(); // 消耗当前 token
         switch (*escape)
         {
@@ -300,11 +299,11 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
                     CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second}}}
                 );
             default:
-                throw ParserError("无效的转义字符", lexer.expression, lexer.get_pos());
+                throw ParserError("无效的转义字符", lexer.get_expression(), lexer.get_pos());
         }
     }
     else{
-        throw ParserError("无效的转义字符", lexer.expression, lexer.get_pos());
+        throw ParserError("无效的转义字符", lexer.get_expression(), lexer.get_pos());
     }
 }
 
@@ -312,10 +311,11 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
 static std::unique_ptr<AST> parse_char_class(Lexer &lexer){
     // 解析一个字符集
     // char_class <- '[' '^'? char_class_content ']'
-    std::shared_ptr<Token> token = lexer.next_token(); // 消耗 '['
+    lexer.next_token(); // 消耗 '['
+    Token token = lexer.get_current_token();
     bool negated = false;
 
-    if (std::holds_alternative<Atom>(token->type) && std::get<Atom>(token->type) == Atom::CHAR && token->value == '^'){
+    if (std::holds_alternative<Atom>(token.type) && std::get<Atom>(token.type) == Atom::CHAR && token.value == '^'){
         // 取反的字符类
         lexer.next_token(); // 消耗 '^'
         negated = true;
@@ -329,48 +329,51 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
     // 这里仅有'-'，'\' 和 ']' 视为特殊字符，其他字符都视为普通字符
     //  char_class_content <- (CHAR | CHAR '-' CHAR | ESCAPE)* 
     std::vector<CharRange> ranges;
-    std::shared_ptr<Token> token = lexer.get_current_token();
-    std::shared_ptr<Token> next_token = lexer.next_token();
+    Token token = lexer.get_current_token();
+    lexer.next_token(); // 消耗当前 token
+    Token next_token = lexer.get_current_token();
     
     while (true)
     {
-        if (next_token && next_token->value == '-'){
+        if (next_token.value == '-'){
             // 遇到 '-'，解析范围情况, 如 [a-z]
-            std::shared_ptr<Token> end_token = lexer.next_token();
+            lexer.next_token(); // 消耗 '-'
+            Token end_token = lexer.get_current_token();
 
-            if (end_token->value == ']'){
+            if (end_token.value == ']'){
                 // 如果 '-' 后面紧跟 ']'，则 '-' 被视为普通字符
-                ranges.push_back(CharRange{token->value, token->value + 1});
+                ranges.push_back(CharRange{token.value, token.value + 1});
                 ranges.push_back(CharRange{'-', '-' + 1});
                 return ranges;
             }
-            else if (std::holds_alternative<Strcutural>(end_token->type) && std::get<Strcutural>(end_token->type) == Strcutural::END){
+            else if (std::holds_alternative<Strcutural>(end_token.type) && std::get<Strcutural>(end_token.type) == Strcutural::END){
                 // 如果 '-' 后面紧跟 'End'，则抛出异常，表示无效的字符范围
-                throw ParserError("无效的字符范围", lexer.expression, lexer.get_pos());
+                throw ParserError("无效的字符范围", lexer.get_expression(), lexer.get_pos());
             }
 
             // 检查范围是否合法，范围必须是升序的，即 start < end
-            if (token->value > end_token->value) throw ParserError("无效的字符范围, 范围必须是升序的，即 start < end", lexer.expression, lexer.get_pos());
+            if (token.value > end_token.value) throw ParserError("无效的字符范围, 范围必须是升序的，即 start < end", lexer.get_expression(), lexer.get_pos());
             
-            ranges.push_back(CharRange{token->value, end_token->value + 1});
+            ranges.push_back(CharRange{token.value, end_token.value + 1});
             lexer.next_token(); // 消耗 end_token            
         }
-        else if (next_token && next_token->value == ']'){
+        else if (next_token.value == ']'){
             // 遇到 ']'，结束字符类的解析
-            ranges.push_back(CharRange{token->value, token->value + 1});
+            ranges.push_back(CharRange{token.value, token.value + 1});
             return ranges;
         }
-        else if (std::holds_alternative<Strcutural>(token->type) && std::get<Strcutural>(token->type) == Strcutural::END){
+        else if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::END){
             // 遇到 'End'，抛出异常，表示字符类没有正确闭合
-            throw ParserError("字符类没有正确闭合", lexer.expression, lexer.get_pos());
+            throw ParserError("字符类没有正确闭合", lexer.get_expression(), lexer.get_pos());
         }
         else{
             // 普通字符，直接加入 ranges
-            ranges.push_back(CharRange{token->value, token->value + 1});
+            ranges.push_back(CharRange{token.value, token.value + 1});
         }
 
         token = lexer.get_current_token();
-        next_token = lexer.next_token();
+        lexer.next_token();
+        next_token = lexer.get_current_token();
     }
     
 }

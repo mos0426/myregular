@@ -4,31 +4,6 @@
 #include <cstdint>
 #include <utility>
 
-struct Token;
-
-class Lexer{
-public:
-    std::string_view expression;
-
-    explicit Lexer(std::string_view &expression); 
-
-    inline const std::shared_ptr<Token> next_token();
-
-    inline const std::shared_ptr<Token> get_current_token() {return current_token;};
-
-    inline const unsigned int  get_pos() {return (unsigned int)(current-expression.begin());};
-
-
-private:
-    // current 指向的是下一个 token 的首字节位置，如果已经完全解析完，则等于 expression 的尾后迭代器
-    std::string_view::const_iterator current;
-    std::shared_ptr<Token> current_token;
-
-    // 对 *current 进行 tokonize, 返回 pair<Token, 下一个字符的首字节>
-    std::pair<Token, std::string_view::const_iterator> build_token();
-    std::pair<Token, std::string_view::const_iterator> build_escape_token();
-};
-
 
 enum class Atom: uint8_t {
     CHAR = 0, 
@@ -85,4 +60,32 @@ using TokenType = std::variant<
 struct Token{
     TokenType type;
     uint32_t value; 
+};
+
+
+class Lexer{
+public:
+
+    explicit Lexer(std::string_view expression); 
+
+    void next_token();
+
+    inline Token get_current_token() const noexcept {return current_token;};
+
+    inline std::size_t  get_pos() const noexcept {return static_cast<std::size_t>(current - expression.begin());};
+
+    inline bool is_end() const noexcept {return current == expression.cend();};
+
+    inline std::string_view get_expression() const noexcept {return expression;};
+
+
+private:
+    std::string_view expression;
+    // current 指向的是下一个 token 的首字节位置，如果已经完全解析完，则等于 expression 的尾后迭代器
+    std::string_view::const_iterator current;
+    Token current_token;
+
+    // 对 *current 进行 tokonize
+    void build_token();
+    void build_escape_token();
 };

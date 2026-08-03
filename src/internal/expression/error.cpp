@@ -9,7 +9,7 @@
 ExpressionError::ExpressionError(
     const std::string &message, 
     const std::string_view &pattern, 
-    unsigned int pos,
+    std::size_t pos,
     const std::string &prefix
     ):
     std::runtime_error(""), message_(message), pattern_(pattern), pos_(pos){
