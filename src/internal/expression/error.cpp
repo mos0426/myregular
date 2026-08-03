@@ -21,6 +21,6 @@ ExpressionError::ExpressionError(
         full_message_.append("\n");
 
         // 显示错误位置
-        full_message_.append(std::string(pos_, ' '));
+        full_message_.append(std::string(pos_-1, ' '));
         full_message_.append("^");
     }
