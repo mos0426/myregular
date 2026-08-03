@@ -344,6 +344,7 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
                 // 如果 '-' 后面紧跟 ']'，则 '-' 被视为普通字符
                 ranges.push_back(CharRange{token.value, token.value + 1});
                 ranges.push_back(CharRange{'-', '-' + 1});
+                lexer.next_token(); // 消耗 ']'
                 return ranges;
             }
             else if (std::holds_alternative<Strcutural>(end_token.type) && std::get<Strcutural>(end_token.type) == Strcutural::END){
@@ -360,6 +361,7 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
         else if (next_token.value == ']'){
             // 遇到 ']'，结束字符类的解析
             ranges.push_back(CharRange{token.value, token.value + 1});
+            lexer.next_token(); // 消耗 ']'
             return ranges;
         }
         else if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::END){
