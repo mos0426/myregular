@@ -70,20 +70,20 @@ public:
 
     void next_token();
 
-    inline Token get_current_token() const noexcept {return current_token;};
+    inline Token get_current_token() const noexcept {return current_token_;};
 
-    inline std::size_t  get_pos() const noexcept {return static_cast<std::size_t>(current - expression.begin());};
+    inline std::size_t  get_pos() const noexcept {return static_cast<std::size_t>(current_ - expression_.begin());};
 
-    inline bool is_end() const noexcept {return current == expression.cend();};
+    inline bool is_end() const noexcept {return current_ == expression_.cend();};
 
-    inline std::string_view get_expression() const noexcept {return expression;};
+    inline std::string_view get_expression() const noexcept {return expression_;};
 
 
 private:
-    std::string_view expression;
+    std::string_view expression_;
     // current 指向的是下一个 token 的首字节位置，如果已经完全解析完，则等于 expression 的尾后迭代器
-    std::string_view::const_iterator current;
-    Token current_token;
+    std::string_view::const_iterator current_;
+    Token current_token_;
 
     // 对 *current 进行 tokonize
     void build_token();
