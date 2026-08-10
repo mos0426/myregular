@@ -15,8 +15,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
-# 如果只有头文件库（纯头文件实现），可以省略源文件列表，但通常至少有一个 .cpp
 # Lib expression
+add_library(utility STATIC src/internal/utility/utf8.cpp)
+target_include_directories(utility PUBLIC include/internal/utility)
+
 add_library(expression STATIC 
     src/internal/expression/error.cpp
     src/internal/expression/lexer.cpp
@@ -25,8 +27,13 @@ add_library(expression STATIC
 target_include_directories(expression PUBLIC include/internal/expression)
 target_link_libraries(expression PRIVATE utility)
 
-add_library(utility STATIC src/internal/utility/utf8.cpp)
-target_include_directories(utility PUBLIC include/internal/utility)
+# add_library(automata STATIC 
+#     # src/internal/automata/charset.cpp
+#     # src/internal/automata/nfa.cpp
+# )
+# target_include_directories(automata PUBLIC include/internal/automata)
+
+
 
 
 # Unit test
