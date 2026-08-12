@@ -1,3 +1,6 @@
+#include <cstdint>
+#include <map>
+#include <vector>
 
 #include "charset.hpp"
 
