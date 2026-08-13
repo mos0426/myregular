@@ -44,7 +44,7 @@ std::vector<size_t> NFA::move(const std::vector<size_t> &state_set, uint32_t cod
 };
 
 
-std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> const &state_set) const{
+std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) const{
     // 计算给定状态集合的 epsilon 闭包
     //state_set 必须为正向排列无重复元素的序列
 
