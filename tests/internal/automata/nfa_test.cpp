@@ -1,0 +1,35 @@
+#include <gtest/gtest.h>
+#include <string>
+#include <vector>
+
+#include <iostream>
+
+#include "nfa.hpp"
+
+TEST(NFATest, Basic){
+    NFA nfa;
+    for (int i = 1; i <= 5; i++) nfa.new_state();
+    nfa.add_transition('a', 0, {1, 4});
+    nfa.add_transition('a', 1, 2);
+    nfa.add_transition('a', 2, 3);
+    nfa.add_transition('a', 4, 5);
+    nfa.add_transition('a', 5, 4);
+    nfa.set_final_state_set({3, 5});
+    std::string a_str = "aaa";
+    for (auto c: a_str){
+        nfa.consume(c);
+    };
+    ASSERT_EQ(nfa.get_current_state_set(), std::vector<size_t>({3, 4}));
+
+    NFA nfa2;
+    for (int i = 1; i <= 5; i++) nfa2.new_state();
+    nfa2.add_transition('a', 0, {1, 4});
+    nfa2.add_transition('a', 1, 2);
+    nfa2.add_transition('a', 2, 3);
+    nfa2.add_transition('a', 4, 5);
+    nfa2.add_transition('a', 5, 4);
+    nfa2.add_transition('a', 3, {1, 2, 3});
+    nfa2.add_transition('a', 4, 1);
+    ASSERT_EQ(nfa2.move({3}, 'a'), std::vector<size_t>({1, 2, 3}));
+    ASSERT_EQ(nfa2.move({4}, 'a'), std::vector<size_t>({1, 5}));
+}
