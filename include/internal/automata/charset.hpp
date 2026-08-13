@@ -15,6 +15,11 @@ public:
     CharSet() = default;
     ~CharSet() = default;
 
+    CharSet(uint32_t start, uint32_t end){
+        endpoints_.insert({start, EndpointType::START});
+        endpoints_.insert({end, EndpointType::END});
+    }
+
     // 检查给定的码点是否在字符集范围内
     bool contains(uint32_t codepoint) const;
 
