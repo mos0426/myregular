@@ -95,8 +95,21 @@ void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state){
             return;
         }
     }
-
     transitions.push_back({target_state, CharSet(codepoint, codepoint+1)});
+}
+
+
+void NFA::add_transition(size_t state, size_t target_state){
+    // 增加一个空转移 (epsilon transition)
+
+    std::vector<NFATransition> &transitions = transition_table_[state];
+    for (auto i = transitions.begin(); i != transitions.end(); i++){
+        if (i->target_state == target_state){
+            i->has_epsilon = true;
+            return;
+        }
+    }
+    transitions.push_back({target_state, CharSet(), true});
 }
 
 

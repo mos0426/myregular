@@ -34,11 +34,15 @@ public:
         current_state_set_.swap(new_state_set);
     };
 
-    // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
+    // 增加一个转移(transition), 要求 state 和 target_state(或target_state_set) 都是 this 已存在的状态
     void add_transition(uint32_t codepoint, size_t state, size_t target_state);
-    // target_states 中所有状态都是 this 已存在的状态
     void add_transition(uint32_t codepoint, size_t state, std::vector<size_t> target_states){
         for (size_t target_state: target_states) add_transition(codepoint, state, target_state);
+    };
+    // 增加一个空转移 (epsilon transition)
+    void add_transition(size_t state, size_t target_state);
+    void add_transition(size_t state, std::vector<size_t> traget_states){
+        for (size_t target_state: traget_states) add_transition(state, target_state);
     };
 
     size_t new_state(){
