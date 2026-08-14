@@ -32,4 +32,13 @@ TEST(NFATest, Basic){
     nfa2.add_transition('a', 4, 1);
     ASSERT_EQ(nfa2.move({3}, 'a'), std::vector<size_t>({1, 2, 3}));
     ASSERT_EQ(nfa2.move({4}, 'a'), std::vector<size_t>({1, 5}));
+
+    // 空转移 (epsilon transition) 测试
+    NFA nfa3;
+    for (int i = 1; i<= 3; i++) nfa3.new_state();
+    nfa3.add_transition('a', 0, 1);
+    nfa3.add_transition(1, {2, 3});
+    nfa3.add_transition(2, {0});
+    nfa3.add_transition(3, {1});
+    ASSERT_EQ(nfa3.epsilon_closure({1}), std::vector<size_t>({0, 1, 2, 3}));
 }
