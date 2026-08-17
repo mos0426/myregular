@@ -85,6 +85,19 @@ std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) c
 }
 
 
+bool NFA::check(){
+    auto c_it = current_state_set_.begin(), f_it = final_state_set_.begin();
+
+    while ((c_it != current_state_set_.end()) && (f_it != final_state_set_.end())){
+        if (*c_it < *f_it) c_it++;
+        else if (*c_it > *f_it) f_it++;
+        else return true; // *c_it == *f_it
+    }
+    
+    return false;
+}
+
+
 void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state, bool is_negated){
     // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
 
