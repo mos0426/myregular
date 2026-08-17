@@ -35,7 +35,7 @@ public:
     };
 
     // 增加一个转移(transition), 要求 state 和 target_state(或target_state_set) 都是 this 已存在的状态
-    void add_transition(uint32_t codepoint, size_t state, size_t target_state);
+    void add_transition(uint32_t codepoint, size_t state, size_t target_state, bool is_negated=false);
     void add_transition(uint32_t codepoint, size_t state, std::vector<size_t> target_states){
         for (size_t target_state: target_states) add_transition(codepoint, state, target_state);
     };

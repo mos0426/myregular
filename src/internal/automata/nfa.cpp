@@ -85,13 +85,13 @@ std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) c
 }
 
 
-void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state){
+void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state, bool is_negated){
     // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
 
     std::vector<NFATransition> &transitions = transition_table_[state];
     for (auto i = transitions.begin(); i != transitions.end(); i++){
         if (i->target_state == target_state){
-            i->char_set.add(codepoint, codepoint+1);
+            i->char_set.add(codepoint, codepoint+1, is_negated);
             return;
         }
     }
