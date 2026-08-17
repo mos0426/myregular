@@ -34,7 +34,14 @@ public:
     bool contains(uint32_t codepoint) const;
 
     // 增加一个码点区间
-    void add(uint32_t start, uint32_t end);
+    // is_negated 为取反标志, 若 is_negated 为 true, 则增加区间 [start, end) 的补集
+    void add(uint32_t start, uint32_t end, bool is_negated=false);
+
+    // 增加一个通配符字符集
+    void add_wildcard(){
+        endpoint_set_.clear();
+        negated_ = true;
+    };
 
     // 禁止拷贝构造和拷贝赋值
     CharSet(const CharSet&) = delete;
@@ -50,3 +57,7 @@ private:
     // 取反标志，若为 ture, 指定的字符集范围即为 endpoints_ 描述的字符集范围的补集
     bool negated_ = false;
 };
+
+
+// 检测 endpoint_set 是否合法
+bool check_endpoint_set(const std::vector<Endpoint> endpoint_set);

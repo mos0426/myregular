@@ -240,15 +240,37 @@ bool CharSet::contains(uint32_t codepoint) const {
 }
 
 
-void CharSet::add(uint32_t start, uint32_t end){
+void CharSet::add(uint32_t start, uint32_t end, bool is_negated){
     // 添加一个码点到字符集范围中
     std::vector<Endpoint> a_range = {Endpoint{start, EndpointType::START}, Endpoint{end, EndpointType::END}};
     std::vector<Endpoint> temp;
-    if (negated_) temp = endpoint_set_difference(endpoint_set_, a_range);
+    if (negated_ != is_negated){
+        temp = endpoint_set_difference(a_range, endpoint_set_);
+        negated_ = negated_ != true; // 翻转 negated
+    }
     else temp = endpoint_set_union(endpoint_set_, a_range);
     endpoint_set_.swap(temp);
 }
 
+
+bool check_endpoint_set(const std::vector<Endpoint> endpoint_set){
+    if (endpoint_set.empty()) return true;
+    
+    auto current = endpoint_set.begin();
+    if (current->type != EndpointType::START) return false;
+
+    auto next = endpoint_set.begin() + 1;
+    while (next != endpoint_set.end()){
+        if (current->codepoint >= next->codepoint) return false;
+        else{
+            if (current->type == next->type) return false;
+        };
+        current++, next++;
+    }
+
+    if (current->type != EndpointType::END) return false;
+    return true;
+}
 
 
 
