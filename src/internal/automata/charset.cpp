@@ -93,80 +93,51 @@ namespace{
         // 复杂度:
         //  - 时间复杂度 O(n + m)，空间复杂度 O(n + m)，其中 n = first.size(), m = second.size().
 
-        // 遍历 first 的码点区间 range, 逐个 range 对 second 求差集:{
-        //  second_it 推进到 range 起点后.
-        //  对比 second 当前端点和 range 起点码点值:
-        //      - second 当前端点码点值大于 range 起点码点值:
-        //          - second 当前端点类型 START, range 起点压入 new_endpoint_set， 创建新端点压入 new_endpoint_set
-        //            新端点的码点值为 second 当前端点码点值, 端点类型为 END, 推进 second;
-        //          - second 当前端点类型为 END, 创建新端点压入 new_endpoint_set, 新端点码点值为 second 当
-        //            前端点码点值, 端点类型为 START, 推进 second;
-        //      - 码点值相等:
-        //          - second 当前端点类型为 START, second 当前端点和 range起点抵消, second 推进:
-        //              - 对比 second 当前端点和 range 终点的码点值:
-        //                  - second 当前端点码点值小于 range 终点码点值, 创建新端点压入 new_endpoint_set
-        //                    新端点码点值为 second 当前端点码点值, 端点类型为 STAR, 推进 second;
-        //                  - second 当前端点码点值大于等于 range 终点码点值, range 湮灭, 跳入下一循环.
-        //          - second 当前端点类型为 END, range 起点压入 new_endpoint_set, 推进 second;
-        //  遍历 second, 直到 second 推进到 码点值大于等于 range 终点值:{
-        //      创建新端点压入 new_endpoint_set, 新端点码点值为 second 当前端点码点值, 端点类型于 second 当前端点类型相反,
-        //      推进 second.
-        //  }
-        //  - second 当前端点码点值等于 range 终点码点值:
-        //      - second 当前端点类型为 START, range 终点压入 new_endpoint_set;
-        //      - second 当前端点类型为 END, 跳入下一循环;
-        // - second 当前端点码点值大于 range 终点码点值, 跳入下一循环.
-        // }
-
         if (first.empty()) return std::vector<Endpoint>();
         if (second.empty()) return std::vector<Endpoint>(first);
 
         std::vector<Endpoint> new_enpoint_set;
         auto first_it = first.begin(), second_it = second.begin();
 
-
-        for (auto range_start = first_it, range_end = first_it + 1; first_it != first.end(); first_it = first_it+2){
-            for (; second_it <= range_start; second_it++);  // second_it 推进到 range_start 后
-            
-            if (second_it->codepoint > range_start->codepoint){
-                if (second_it->type == EndpointType::START){
-                    new_enpoint_set.push_back(*range_start);
-                    new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::END});
-                    second_it++;
-                }
-                else{
-                    new_enpoint_set.emplace_back(Endpoint(second_it->codepoint, EndpointType::START));
-                    second_it++;
-                }
+        while (true){
+            // 检查边界
+            if (first_it == first.end()) break;
+            if(second_it == second.end()){
+                for (; first_it != first.end(); first_it++) new_enpoint_set.push_back(*first_it);
+                break;
             }
-            else if (second_it->codepoint == range_start->codepoint){
-                if (second_it->type == EndpointType::START){
-                    second_it++;  // 端点抵消
-                    if (second_it->codepoint < range_end->codepoint){
-                        new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::START});
-                        second_it++;
+
+            if (first_it->codepoint < second_it->codepoint){
+                if (new_enpoint_set.empty()) new_enpoint_set.push_back(*first_it);
+                else{
+                    if (new_enpoint_set.back().type != first_it->type) new_enpoint_set.push_back(*first_it);
+                }
+                first_it++;
+            }
+            else if (first_it->codepoint > second_it->codepoint){
+                if (new_enpoint_set.empty()) second_it++;
+                else{
+                    if (new_enpoint_set.back().type == EndpointType::START){
+                        if (second_it->type == EndpointType::START){
+                            new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::END});
+                        }
+                        else{
+                            new_enpoint_set.pop_back();
+                            new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::START});
+                        }
                     }
-                    else continue;
-                }
-                else{
-                    new_enpoint_set.push_back(*range_start);
                     second_it++;
                 }
             }
-
-            for (; second_it->codepoint < range_end->codepoint; second_it++){
-                if (second_it->type == EndpointType::START){
-                    new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::END});
-                }
-                else new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::START});
-            }
-
-            if (second_it->codepoint == range_end->codepoint){
-                if (second_it->type == EndpointType::START){
-                    new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::END});
-                }
+            else{  // first_it->codepoint == second_it->codepoint
+                // 端点类型相同，两个端点抵消;
+                // 端点类型不同, second_it 不被 first 包含
+                if (first_it->type != second_it->type) new_enpoint_set.push_back(*first_it);
+                first_it++, second_it++;
             }
         }
+
+    return new_enpoint_set;
     }
 
 
