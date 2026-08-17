@@ -2,8 +2,6 @@
 #include <string>
 #include <vector>
 
-#include <iostream>
-
 #include "nfa.hpp"
 
 TEST(NFATest, Basic){
