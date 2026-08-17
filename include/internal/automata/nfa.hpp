@@ -53,7 +53,7 @@ public:
 
     void add_final_state(size_t final_state);
 
-    void set_final_state_set(std::vector<size_t> final_state_set){final_state_set_.swap(final_state_set);};
+    void set_final_state_set(std::vector<size_t> final_state_set);
 
     std::vector<size_t> get_current_state_set() {return current_state_set_;};
 

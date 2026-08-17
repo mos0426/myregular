@@ -119,4 +119,9 @@ void NFA::add_final_state(size_t final_state){
 }
 
 
+void NFA::set_final_state_set(std::vector<size_t> final_state_set){
+    sort_and_unique(final_state_set);
+    final_state_set_.swap(final_state_set);
+}
+
 
