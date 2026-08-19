@@ -108,7 +108,21 @@ void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state, 
             return;
         }
     }
-    transitions.push_back({target_state, CharSet(codepoint, codepoint+1)});
+    transitions.emplace_back(NFATransition{target_state, CharSet(codepoint, codepoint+1)});
+}
+
+
+void NFA::add_wildcard_transition(size_t state, size_t target_state){
+    
+    std::vector<NFATransition> &transitions = transition_table_[state];
+    for (auto i = transitions.begin(); i!= transitions.end(); i++){
+        if (i->target_state == target_state){
+            i->char_set.add_wildcard();
+            return;
+        }
+    }
+    transitions.emplace_back(NFATransition{target_state, CharSet()});
+    transitions.back().char_set.add_wildcard();
 }
 
 
@@ -122,7 +136,7 @@ void NFA::add_transition(size_t state, size_t target_state){
             return;
         }
     }
-    transitions.push_back({target_state, CharSet(), true});
+    transitions.emplace_back(NFATransition{target_state, CharSet(), true});
 }
 
 

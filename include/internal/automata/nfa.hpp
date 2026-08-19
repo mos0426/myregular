@@ -48,6 +48,9 @@ public:
         for (size_t target_state: traget_states) add_transition(state, target_state);
     };
 
+    // 增加一个通配符转移 (wildcard transition)
+    void add_wildcard_transition(size_t state, size_t target_state);
+
     size_t new_state(){
         std::size_t new_state = transition_table_.size();
         transition_table_.emplace_back();
