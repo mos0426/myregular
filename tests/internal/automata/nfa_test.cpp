@@ -7,7 +7,8 @@
 TEST(NFATest, Basic){
     NFA nfa;
     for (int i = 1; i <= 5; i++) nfa.new_state();
-    nfa.add_transition('a', 0, {1, 4});
+    nfa.add_transition('a', 0, 1);
+    nfa.add_transition('a', 0, 4);
     nfa.add_transition('a', 1, 2);
     nfa.add_transition('a', 2, 3);
     nfa.add_transition('a', 4, 5);
@@ -22,12 +23,15 @@ TEST(NFATest, Basic){
 
     NFA nfa2;
     for (int i = 1; i <= 5; i++) nfa2.new_state();
-    nfa2.add_transition('a', 0, {1, 4});
+    nfa2.add_transition('a', 0, 1);
+    nfa2.add_transition('a', 0, 4);
     nfa2.add_transition('a', 1, 2);
     nfa2.add_transition('a', 2, 3);
     nfa2.add_transition('a', 4, 5);
     nfa2.add_transition('a', 5, 4);
-    nfa2.add_transition('a', 3, {1, 2, 3});
+    nfa2.add_transition('a', 3, 1);
+    nfa2.add_transition('a', 3, 2);
+    nfa2.add_transition('a', 3, 3);
     nfa2.add_transition('a', 4, 1);
     nfa2.set_final_state_set({5, 2});
     ASSERT_EQ(nfa2.move({3}, 'a'), std::vector<size_t>({1, 2, 3}));
@@ -39,9 +43,10 @@ TEST(NFATest, Basic){
     NFA nfa3;
     for (int i = 1; i<= 3; i++) nfa3.new_state();
     nfa3.add_transition('a', 0, 1);
-    nfa3.add_transition(1, {2, 3});
-    nfa3.add_transition(2, {0});
-    nfa3.add_transition(3, {1});
+    nfa3.add_epsilon_transition(1, 2);
+    nfa3.add_epsilon_transition(1, 3);
+    nfa3.add_epsilon_transition(2, 0);
+    nfa3.add_epsilon_transition(3, 1);
     nfa3.set_final_state_set({3});
     ASSERT_EQ(nfa3.epsilon_closure({1}), std::vector<size_t>({0, 1, 2, 3}));
     nfa3.consume('a');

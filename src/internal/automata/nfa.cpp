@@ -98,17 +98,17 @@ bool NFA::check(){
 }
 
 
-void NFA::add_transition(uint32_t codepoint, size_t state, size_t target_state, bool is_negated){
+void NFA::add_transition(uint32_t start, uint32_t end, size_t state, size_t target_state, bool is_negated){
     // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
 
     std::vector<NFATransition> &transitions = transition_table_[state];
     for (auto i = transitions.begin(); i != transitions.end(); i++){
         if (i->target_state == target_state){
-            i->char_set.add(codepoint, codepoint+1, is_negated);
+            i->char_set.add(start, end, is_negated);
             return;
         }
     }
-    transitions.emplace_back(NFATransition{target_state, CharSet(codepoint, codepoint+1)});
+    transitions.emplace_back(NFATransition{target_state, CharSet(start, end)});
 }
 
 
@@ -126,7 +126,7 @@ void NFA::add_wildcard_transition(size_t state, size_t target_state){
 }
 
 
-void NFA::add_transition(size_t state, size_t target_state){
+void NFA::add_epsilon_transition(size_t state, size_t target_state){
     // 增加一个空转移 (epsilon transition)
 
     std::vector<NFATransition> &transitions = transition_table_[state];
