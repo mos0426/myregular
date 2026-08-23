@@ -70,7 +70,7 @@ void Lexer::build_escape_token(){
     case 'l': current_token_ = Token(Escape::LOWERCASE, 'l'); current_ += 2; break;
     case 'u': current_token_ = Token(Escape::UPPERCASE, 'u'); current_ += 2; break;
     default: {
-        auto [codepoint, next] = decode_codepoint(current_, expression_.cend());
+        auto [codepoint, next] = decode_codepoint(current_+1, expression_.cend());
         current_token_ = Token(Atom::CHAR, codepoint);
         current_ = next;
     }
