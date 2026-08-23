@@ -151,8 +151,7 @@ static std::unique_ptr<AST> parse_atom(Lexer &lexer){
             return parse_char_class(lexer);
         case Atom::DOT:
             lexer.next_token(); // 消耗 '.'
-            return std::make_unique<AST>(CharClassNode{{
-                CharRange{}},
+            return std::make_unique<AST>(CharClassNode{{},
                 true // DOT 表示匹配任意字符，取反的字符类
             } 
             );
