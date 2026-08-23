@@ -1,3 +1,5 @@
+#pragma once
+
 #include <variant>
 #include <memory>
 #include <string>

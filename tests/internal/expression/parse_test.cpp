@@ -2,6 +2,18 @@
 #include <gtest/gtest.h>
 
 #include "parse.hpp"
+#include "error.hpp"
+
+TEST(ExpressionParseTest, CharClass){
+    std::string expression = "[a-z]";
+    std::string_view sv = expression;
+    auto ast = parse(sv);
+
+    std::string expression2 = "[a-Z]";
+    std::string_view sv2 = expression2;
+    ASSERT_THROW(parse(sv2), ParserError);
+}
+
 
 TEST(ExpressionParseTest, BasicParse) {
     std::string expression1 = "(1|2|3|4|56)+[abc]+";

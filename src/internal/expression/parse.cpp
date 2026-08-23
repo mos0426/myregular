@@ -358,9 +358,8 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
             ranges.push_back(CharRange{token.value, end_token.value + 1});
             lexer.next_token(); // 消耗 end_token            
         }
-        else if (next_token.value == ']'){
+        else if (token.value == ']'){
             // 遇到 ']'，结束字符类的解析
-            ranges.push_back(CharRange{token.value, token.value + 1});
             lexer.next_token(); // 消耗 ']'
             return ranges;
         }
@@ -371,6 +370,7 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
         else{
             // 普通字符，直接加入 ranges
             ranges.push_back(CharRange{token.value, token.value + 1});
+            lexer.next_token();  // 消耗字符
         }
 
         token = lexer.get_current_token();
