@@ -13,7 +13,7 @@ ExpressionError::ExpressionError(
     const std::string &prefix
     ):
     std::runtime_error(""), message_(message), pattern_(pattern), pos_(pos){
-    
+        full_message_.append("\n");
         full_message_.append("[" + prefix + "]: ");
         full_message_.append(message_);
         full_message_.append("\n");
