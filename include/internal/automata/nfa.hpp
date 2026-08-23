@@ -37,6 +37,9 @@ public:
     // 检查是否已经到达最终状态
     bool check();
 
+    // 重置 nfa, current_state_set_ 重置回初始状态
+    void reset();
+
     // 增加一个转移(transition), 要求 state 和 target_state(或target_state_set) 都是 this 已存在的状态
     // start 和 end 分别为码点区间的起点和终点
     void add_transition(uint32_t start, uint32_t end, size_t state, size_t target_state, bool is_negated=false);

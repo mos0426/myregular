@@ -98,6 +98,14 @@ bool NFA::check(){
 }
 
 
+void NFA::reset(){
+    std::vector<size_t> initial_epsilon_closure = epsilon_closure({0});
+    initial_epsilon_closure.push_back(0);
+    sort_and_unique(initial_epsilon_closure);
+    current_state_set_ = initial_epsilon_closure;
+}
+
+
 void NFA::add_transition(uint32_t start, uint32_t end, size_t state, size_t target_state, bool is_negated){
     // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
 
