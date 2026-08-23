@@ -31,9 +31,7 @@ std::vector<size_t> NFA::move(const std::vector<size_t> &state_set, uint32_t cod
     sort_and_unique(result);
      
     // epsilon_closure 的输入状态集
-    std::vector<size_t> source;
-    std::set_union(state_set.begin(), state_set.end(), result.begin(), result.end(), std::back_inserter(source));
-    std::vector<size_t> closure(epsilon_closure(source));
+    std::vector<size_t> closure(epsilon_closure(result));
     
     // 整合 result 和 closure
     std::vector<size_t> temp;
