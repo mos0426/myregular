@@ -359,7 +359,6 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
         }
         else if (token.value == ']'){
             // 遇到 ']'，结束字符类的解析
-            lexer.next_token(); // 消耗 ']'
             return ranges;
         }
         else if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::END){
