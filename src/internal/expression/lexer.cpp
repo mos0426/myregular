@@ -41,6 +41,8 @@ void Lexer::build_token(){
     case ')': current_token_ = Token{Strcutural::RPARENT, ')'}; current_++; break;
     case '[': current_token_ = Token{Atom::LBRAKET, '['}; current_++; break;
     case ']': current_token_ = Token{Strcutural::RBRAKET, ']'}; current_++; break;
+    case '{': current_token_ = Token{Strcutural::LBRACE, '{'}; current_++; break;
+    case '}': current_token_ = Token{Strcutural::RBRACE, '}'}; current_++; break;
     case '|': current_token_ = Token{InfixOperator::PIPE, '|'}; current_++; break;
     case '.': current_token_ = Token{Atom::DOT, '.'}; current_++; break;
     case '\\': build_escape_token(); break;
