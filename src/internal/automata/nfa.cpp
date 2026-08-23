@@ -61,6 +61,7 @@ std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) c
             }
         }
 
+        sort_and_unique(current_targets);
         std::vector<size_t> diff;
         std::set_difference(
             current_targets.begin(), current_targets.end(), visited.begin(), visited.end(), std::back_inserter(diff)
