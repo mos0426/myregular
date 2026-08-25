@@ -18,3 +18,22 @@ TEST(CharSetTest, BASIC){
     cs.add_wildcard();
     ASSERT_TRUE(cs.contains(68));
 };
+
+
+TEST(CharSet, Unite){
+    {
+        // 测试区间相离，相交，包含，被包含， negate = true / false
+        CharSet charset1 = CharSet(3, 9), charset1_ = CharSet(3, 9, true);
+        CharSet charset2 = CharSet(5,13), charset2_ = CharSet(5, 13, true);
+        charset1.add(10, 11), charset1.add(12, 18), charset1.add(20, 25);
+
+        CharSet new_charset_1 = charset1.unite(charset2);
+        CharSet new_charset_2 = charset1.unite(charset2_);
+        CharSet new_charset_3 = charset1_.unite(charset2_);
+        ASSERT_TRUE(new_charset_1.contains(6) && new_charset_2.contains(6) && !new_charset_3.contains(6));
+        ASSERT_TRUE(new_charset_1.contains(3) && new_charset_2.contains(3) && new_charset_3.contains(3));
+        ASSERT_TRUE(new_charset_1.contains(12) && new_charset_2.contains(12) && new_charset_3.contains(12));
+        ASSERT_TRUE(new_charset_1.contains(23) && new_charset_2.contains(23) && new_charset_3.contains(23));
+        ASSERT_TRUE(!new_charset_1.contains(19) && new_charset_2.contains(19) && new_charset_3.contains(19));
+    }
+}

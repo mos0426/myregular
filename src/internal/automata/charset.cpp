@@ -43,7 +43,7 @@ namespace{
             }
             // left.start->codepint < right.start->codepoint
             else{
-                if (left.end > right.start){
+                if (left.end->codepoint > right.start->codepoint){
                     // 区间 [*right.start, *left.end) 压入 new_endpoint_set
                     new_endpoint_set.push_back(*right.start);
                     new_endpoint_set.push_back(*left.end);
