@@ -25,13 +25,18 @@ public:
     CharSet() = default;
     ~CharSet() = default;
 
-    CharSet(uint32_t start, uint32_t end){
-        endpoint_set_.push_back({start, EndpointType::START});
-        endpoint_set_.push_back({end, EndpointType::END});
-    }
+    CharSet(uint32_t start, uint32_t end, bool negated=false):
+    endpoint_set_(
+        {{start, EndpointType::START}, {end, EndpointType::END}}
+    ), negated_(negated) {};
 
     // 检查给定的码点是否在字符集范围内
     bool contains(uint32_t codepoint) const;
+
+    
+    // 返回 this 和 other 的并集
+    CharSet unite(const CharSet &other);
+
 
     // 增加一个码点区间
     // is_negated 为取反标志, 若 is_negated 为 true, 则增加区间 [start, end) 的补集
@@ -56,6 +61,8 @@ private:
     std::vector<Endpoint> endpoint_set_; 
     // 取反标志，若为 ture, 指定的字符集范围即为 endpoints_ 描述的字符集范围的补集
     bool negated_ = false;
+
+    CharSet(std::vector<Endpoint> endpoint_set, bool negated): endpoint_set_(endpoint_set), negated_(negated) {};
 };
 
 

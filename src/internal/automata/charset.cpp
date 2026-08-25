@@ -273,4 +273,21 @@ bool check_endpoint_set(const std::vector<Endpoint> endpoint_set){
 }
 
 
+CharSet CharSet::unite(const CharSet &other){
+
+    if (!negated_ && !other.negated_){
+        return CharSet(endpoint_set_union(endpoint_set_, other.endpoint_set_), false);
+    }
+    else if (!negated_ && other.negated_){
+        return CharSet(endpoint_set_difference(other.endpoint_set_, endpoint_set_), true);
+    }
+    else if (negated_ && !other.negated_){
+        return CharSet(endpoint_set_difference(endpoint_set_, other.endpoint_set_), true);
+    }
+    else{ // negated_ && other.negated_
+        return CharSet(endpoint_set_intersection(endpoint_set_, other.endpoint_set_), true);
+    }
+}
+
+
 
