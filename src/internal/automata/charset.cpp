@@ -282,13 +282,13 @@ CharSet CharSet::unite(const CharSet &other) const {
 
 CharSet CharSet::unite(uint32_t start, uint32_t end, bool negated) const {
     std::vector<Endpoint> other_endpoint_set = {Endpoint{start, EndpointType::START}, Endpoint{end, EndpointType::END}};
-    if (!negated_ && negated){
+    if (!negated_ && !negated){
         return CharSet(endpoint_set_union(endpoint_set_, other_endpoint_set), false);
     }
     else if (!negated_ && negated){
         return CharSet(endpoint_set_difference(other_endpoint_set, endpoint_set_), true);
     }
-    else if (negated_ && negated){
+    else if (negated_ && !negated){
         return CharSet(endpoint_set_difference(endpoint_set_, other_endpoint_set), true);
     }
     else{ // negated_ && negated
