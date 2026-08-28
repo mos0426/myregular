@@ -247,7 +247,6 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
         switch (*escape)
         {
             case Escape::WORD:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second},
                     CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second},
@@ -255,7 +254,6 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
                     CharRange{UNDERSCORE, UNDERSCORE + 1}}}
                 );
             case Escape::NON_WORD:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second},
                     CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second},
@@ -264,41 +262,34 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
                 true}
                 );
             case Escape::DIGIT:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second}}}
                 );
             case Escape::NON_DIGIT:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second}},
                     true}
                 );
             case Escape::ALPHABETIC:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second}}}
                 );
             case Escape::WHITESPACE:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{WHITESPACE_START, WHITESPACE_END + 1},
                     CharRange{SPACE, SPACE + 1}}}
                 );
             case Escape::NON_WHITESPACE:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{WHITESPACE_START, WHITESPACE_END + 1},
                     CharRange{SPACE, SPACE + 1}},
                     true}
                 );
             case Escape::LOWERCASE:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{ALPHA_LOWER_RANGE.first, ALPHA_LOWER_RANGE.second}}}
                 );
             case Escape::UPPERCASE:
-                lexer.next_token(); // 消耗当前 token
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second}}}
                 );
