@@ -241,8 +241,6 @@ bool CharSet::contains(uint32_t codepoint) const {
 
 
 
-
-
 bool check_endpoint_set(const std::vector<Endpoint> endpoint_set){
     if (endpoint_set.empty()) return true;
     

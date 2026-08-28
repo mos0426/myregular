@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <set>
 #include <vector>
@@ -16,6 +18,7 @@ struct NFATransition
 class NFA {
     // 非确定有穷状态机 (NFA)
     // 初始状态为 '0'
+    // 若当前状态集为 "{}", 那么即为陷入 "死" 状态, 即不可转移到任意其他状态，且不为最终状态
     // 此对象下出现的所有状态集（即所有带 state_set 后缀的变量）在所有操作均保证为正向排列无重复元素的序列
 
 public:
