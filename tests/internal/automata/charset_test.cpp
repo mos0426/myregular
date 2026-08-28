@@ -6,11 +6,11 @@
 
 TEST(CharSetTest, BASIC){
     CharSet cs(24, 32);
-    cs.add(32, 64);
+    cs.unite_update(32, 64);
     ASSERT_TRUE(cs.contains(32));
     ASSERT_FALSE(cs.contains(64));
 
-    cs.add(48, 72, true);
+    cs.unite_update(48, 72, true);
     ASSERT_TRUE(cs.contains(84));
     ASSERT_TRUE(cs.contains(28));
     ASSERT_FALSE(cs.contains(68));
@@ -25,7 +25,7 @@ TEST(CharSet, Unite){
         // 测试区间相离，相交，包含，被包含， negate = true / false
         CharSet charset1 = CharSet(3, 9), charset1_ = CharSet(3, 9, true);
         CharSet charset2 = CharSet(5,13), charset2_ = CharSet(5, 13, true);
-        charset1.add(10, 11), charset1.add(12, 18), charset1.add(20, 25);
+        charset1.unite_update(10, 11), charset1.unite_update(12, 18), charset1.unite_update(20, 25);
 
         CharSet new_charset_1 = charset1.unite(charset2);
         CharSet new_charset_2 = charset1.unite(charset2_);
