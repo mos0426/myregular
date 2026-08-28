@@ -56,8 +56,8 @@ public:
     };
 
     // 禁止拷贝构造和拷贝赋值
-    CharSet(const CharSet&) = delete;
-    CharSet& operator=(const CharSet&) = delete;
+    CharSet(const CharSet&) = default;
+    CharSet& operator=(const CharSet&) = default;
 
     // 允许移动构造和移动赋值
     CharSet(CharSet&&) noexcept = default;
