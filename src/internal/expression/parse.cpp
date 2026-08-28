@@ -249,14 +249,14 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
             case Escape::WORD:
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second},
-                    CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second},
+                    CharRange{ALPHA_UPPER_RANGE.first, ALPHA_UPPER_RANGE.second},
                     CharRange{ALPHA_LOWER_RANGE.first, ALPHA_LOWER_RANGE.second},
                     CharRange{UNDERSCORE, UNDERSCORE + 1}}}
                 );
             case Escape::NON_WORD:
                 return std::make_unique<AST>(CharClassNode{{
                     CharRange{DIGIT_RANGE.first, DIGIT_RANGE.second},
-                    CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second},
+                    CharRange{ALPHA_UPPER_RANGE.first, ALPHA_UPPER_RANGE.second},
                     CharRange{ALPHA_LOWER_RANGE.first, ALPHA_LOWER_RANGE.second},
                     CharRange{UNDERSCORE, UNDERSCORE + 1}},
                 true}
@@ -272,7 +272,8 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
                 );
             case Escape::ALPHABETIC:
                 return std::make_unique<AST>(CharClassNode{{
-                    CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second}}}
+                    CharRange{ALPHA_LOWER_RANGE.first, ALPHA_LOWER_RANGE.second},
+                    CharRange{ALPHA_UPPER_RANGE.first, ALPHA_UPPER_RANGE.second}}}
                 );
             case Escape::WHITESPACE:
                 return std::make_unique<AST>(CharClassNode{{
@@ -291,7 +292,7 @@ static std::unique_ptr<AST> parse_especial(Lexer &lexer){
                 );
             case Escape::UPPERCASE:
                 return std::make_unique<AST>(CharClassNode{{
-                    CharRange{ALPHA_RANGE.first, ALPHA_RANGE.second}}}
+                    CharRange{ALPHA_UPPER_RANGE.first, ALPHA_UPPER_RANGE.second}}}
                 );
             default:
                 throw ParserError("无效的转义字符", lexer.get_expression(), lexer.get_pos());
