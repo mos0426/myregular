@@ -240,17 +240,7 @@ bool CharSet::contains(uint32_t codepoint) const {
 }
 
 
-void CharSet::add(uint32_t start, uint32_t end, bool is_negated){
-    // 添加一个码点到字符集范围中
-    std::vector<Endpoint> a_range = {Endpoint{start, EndpointType::START}, Endpoint{end, EndpointType::END}};
-    std::vector<Endpoint> temp;
-    if (negated_ != is_negated){
-        temp = endpoint_set_difference(a_range, endpoint_set_);
-        negated_ = negated_ != true; // 翻转 negated
-    }
-    else temp = endpoint_set_union(endpoint_set_, a_range);
-    endpoint_set_.swap(temp);
-}
+
 
 
 bool check_endpoint_set(const std::vector<Endpoint> endpoint_set){
@@ -273,7 +263,7 @@ bool check_endpoint_set(const std::vector<Endpoint> endpoint_set){
 }
 
 
-CharSet CharSet::unite(const CharSet &other){
+CharSet CharSet::unite(const CharSet &other) const {
 
     if (!negated_ && !other.negated_){
         return CharSet(endpoint_set_union(endpoint_set_, other.endpoint_set_), false);
@@ -286,6 +276,23 @@ CharSet CharSet::unite(const CharSet &other){
     }
     else{ // negated_ && other.negated_
         return CharSet(endpoint_set_intersection(endpoint_set_, other.endpoint_set_), true);
+    }
+}
+
+
+CharSet CharSet::unite(uint32_t start, uint32_t end, bool negated) const {
+    std::vector<Endpoint> other_endpoint_set = {Endpoint{start, EndpointType::START}, Endpoint{end, EndpointType::END}};
+    if (!negated_ && negated){
+        return CharSet(endpoint_set_union(endpoint_set_, other_endpoint_set), false);
+    }
+    else if (!negated_ && negated){
+        return CharSet(endpoint_set_difference(other_endpoint_set, endpoint_set_), true);
+    }
+    else if (negated_ && negated){
+        return CharSet(endpoint_set_difference(endpoint_set_, other_endpoint_set), true);
+    }
+    else{ // negated_ && negated
+        return CharSet(endpoint_set_intersection(endpoint_set_, other_endpoint_set), true);
     }
 }
 

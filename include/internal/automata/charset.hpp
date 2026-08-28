@@ -33,17 +33,24 @@ public:
     // 检查给定的码点是否在字符集范围内
     bool contains(uint32_t codepoint) const;
 
-    
     // 返回 this 和 other 的并集
-    CharSet unite(const CharSet &other);
+    CharSet unite(const CharSet &other) const;
+    CharSet unite(uint32_t start, uint32_t end, bool negated) const;
 
 
     // 增加一个码点区间
-    // is_negated 为取反标志, 若 is_negated 为 true, 则增加区间 [start, end) 的补集
-    void add(uint32_t start, uint32_t end, bool is_negated=false);
+    void unite_update(const CharSet &other){
+        *this = unite(other);
+    };
+    void unite_update(uint32_t start, uint32_t end, bool negated=false){
+        *this = unite(start, end, negated);
+    };
+
+    // 字符集取反
+    void negation_update(){negated_ = !negated_;};
 
     // 增加一个通配符字符集
-    void add_wildcard(){
+    void unite_wildcard_update(){
         endpoint_set_.clear();
         negated_ = true;
     };

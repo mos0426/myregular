@@ -15,7 +15,7 @@ TEST(CharSetTest, BASIC){
     ASSERT_TRUE(cs.contains(28));
     ASSERT_FALSE(cs.contains(68));
 
-    cs.add_wildcard();
+    cs.unite_wildcard_update();
     ASSERT_TRUE(cs.contains(68));
 };
 
