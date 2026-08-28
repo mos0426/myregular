@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include <limits>
 
 #include "lexer.hpp"
 #include "parse.hpp"
@@ -183,7 +184,11 @@ static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> 
     Token token = lexer.get_current_token();
     if (token.value == ','){
         lexer.next_token(); // 消耗 ','
-        max = parse_number(lexer);
+        token = lexer.get_current_token();
+        if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::RBRACE){
+            max = INFINITE_REPEAT; // "{n, }" 的情况，max 表述为无穷大
+        }
+        else max = parse_number(lexer);
     }
     else{
         max = min; // 如果没有 ',', 则表示 {m}，即 min = max, {m, m}

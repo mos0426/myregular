@@ -6,6 +6,9 @@
 #include <vector>
 
 
+constexpr uint32_t INFINITE_REPEAT = std::numeric_limits<uint32_t>::max();
+
+
 class AST;
 
 std::unique_ptr<AST> parse(std::string_view &expression);
