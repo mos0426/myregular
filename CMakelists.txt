@@ -15,10 +15,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
-# Lib expression
+#Lib utility
 add_library(utility STATIC src/internal/utility/utf8.cpp)
 target_include_directories(utility PUBLIC include/internal/utility)
 
+# Lib expression
 add_library(expression STATIC 
     src/internal/expression/error.cpp
     src/internal/expression/lexer.cpp
@@ -34,7 +35,10 @@ add_library(automata STATIC
 )
 target_include_directories(automata PUBLIC include/internal/automata)
 
-
+#Lib compile
+add_library(compile STATIC src/internal/compile/compile_to_nfa.cpp)
+target_include_directories(compile PUBLIC include/internal/compile)
+target_link_libraries(compile PUBLIC automata expression)
 
 
 # Unit test
@@ -50,6 +54,8 @@ add_executable(automata_test
 )
 target_link_libraries(automata_test PRIVATE automata GTest::gtest_main)
 
+add_executable(compile_test tests/internal/compile/compile_test.cpp)
+target_link_libraries(compile_test PRIVATE compile GTest::gtest_main)
 
 
 # 设置第三方库依赖
@@ -67,6 +73,7 @@ include(GoogleTest)
 gtest_discover_tests(expression_test)
 gtest_discover_tests(utf8_test)
 gtest_discover_tests(automata_test)
+gtest_discover_tests(compile_test)
 
 
 # 如果使用 C++20 的 std::format，某些编译器需要链接额外的库（如 libstdc++fs 等），但通常不需要
