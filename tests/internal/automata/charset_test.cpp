@@ -39,8 +39,8 @@ TEST(CharSet, Unite){
 
     {
         // 测试区间多个同时被同一个区间被包含关系
-        CharSet cs1 = CharSet(1, 100), cs2 = CharSet(3, 9);
-        cs2.unite_update(15, 50), cs2.unite_update(70, 99);
+        CharSet cs1 = CharSet(1, 100), cs2 = CharSet(1, 9);
+        cs2.unite_update(15, 50), cs2.unite_update(70, 100);
 
         auto new_cs = cs1.unite(cs2);
         ASSERT_TRUE(new_cs.contains(18));
