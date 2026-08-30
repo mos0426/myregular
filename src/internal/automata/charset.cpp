@@ -27,57 +27,63 @@ namespace{
         if (first.empty() || second.empty()) return std::vector<Endpoint>();
         std::vector<Endpoint> new_endpoint_set;
         auto first_it = first.begin(), second_it = second.begin();
-
-        auto get_next_range = [](std::vector<Endpoint>::const_iterator &it) -> CodepointRange {
-            CodepointRange result = CodepointRange{it, ++it};
-            it++;
-            return result;
-        };
-
-        auto codepoint_intersection = [&new_endpoint_set](const CodepointRange &left, const CodepointRange &right) -> void {
-            // 对码点范围 left 和 right 求差集, 结果压入 new_endpoint_set
-            // left.end->codepoint < right.end->codepoint
-            if (left.start->codepoint >= right.start->codepoint){
-                //区间 [*left.start, *right.end) 压入 new_endpoint_set
-                new_endpoint_set.push_back(*left.start);
-                new_endpoint_set.push_back(*right.end);
-            }
-            // left.start->codepint < right.start->codepoint
-            else{
-                if (left.end->codepoint > right.start->codepoint){
-                    // 区间 [*right.start, *left.end) 压入 new_endpoint_set
-                    new_endpoint_set.push_back(*right.start);
-                    new_endpoint_set.push_back(*left.end);
-                }
-            }
-        };
-
-        CodepointRange first_range = get_next_range(first_it), second_range = get_next_range(second_it);
+        // 记录已经遇到过的起点的个数，遇到起点计数 +1, 遇到终点计数 -1
+        int counter = 0; 
 
         while (true){
-
-            // 判断 first_range 和 second_range 在码点数轴谁更靠右
-            // 定义: 对比两个区间, 区间终点码点更大则为在码点数轴上更靠右
-            // 靠左的区间对应的迭代器继续推进, 靠右区间的保留不动
-            // 两个区间的终点码点值相等则对应的迭代器同时推进
-            if (first_range.end->codepoint < second_range.end->codepoint){
-                codepoint_intersection(first_range, second_range);
-                if (first_it != first.end()) first_range = get_next_range(first_it);
-                else break;
-            }
-            else if (first_range.end->codepoint > second_range.end->codepoint){
-                codepoint_intersection(second_range, first_range);
-                if (second_it != second.end()) second_range = get_next_range(second_it);
-                else break;
-            }
-            // first_range.end->codepoint == second_range.end->codepoint
-            else{
-                codepoint_intersection(first_range, second_range);
-                if ((first_it != first.end()) && (second_it != second.end())){
-                    first_range = get_next_range(first_it);
-                    second_range = get_next_range(second_it);
+            if (first_it->codepoint < second_it->codepoint){
+                if (first_it->type == EndpointType::START){
+                    if (counter > 0) new_endpoint_set.push_back(*first_it);
+                    ++counter, ++first_it;
                 }
-                else break;
+                else{ // first_it->type == EndpointType::END
+                    if (counter > 1) new_endpoint_set.push_back(*first_it);
+                    --counter, ++first_it;
+                    if (first_it == first.end()){
+                        if (counter > 0) ++second_it;
+                        for (;second_it != second.end(); ++second_it) new_endpoint_set.push_back(*second_it);
+                        break;
+                    } 
+                }
+            }
+            else if (first_it->codepoint > second_it->codepoint) { 
+                 if (second_it->type == EndpointType::START){
+                    if (counter > 0) new_endpoint_set.push_back(*second_it);
+                    ++counter, ++second_it;
+                }
+                else{ // second_it->type == EndpointType::END
+                    if (counter > 1) new_endpoint_set.push_back(*second_it);
+                    --counter, ++second_it;
+                    if (second_it == second.end()){
+                        if (counter > 0) ++first_it; 
+                        for (; first_it != first.end(); ++first_it) new_endpoint_set.push_back(*first_it);
+                        break;
+                    }
+                }               
+            }
+            else{ // first_it->codepoint == second_it->codepoint
+                if (first_it->type == EndpointType::START && second_it->type == EndpointType::START){
+                    new_endpoint_set.push_back(*first_it);
+                    counter += 2;
+                }
+                else{
+                    if (first_it->type != second_it->type) ;// 两个端点抵消
+                    else{ // first_it->type == EndpointType::END && second_it->type == EndpointType::END
+                        new_endpoint_set.push_back(*first_it);
+                        counter -= 2;
+                    }
+                    ++first_it, ++second_it;
+                    if (first_it == first.end()){
+                        if (counter > 0) ++second_it;
+                        for (; second_it != second.end(); ++second_it) new_endpoint_set.push_back(*second_it);
+                        break;
+                    }
+                    if (second_it == second.end()){
+                        if (counter > 0) ++first_it;
+                        for (; first_it != first.end(); ++first_it) new_endpoint_set.push_back(*first_it);
+                        break;
+                    }
+                }
             }
         }
 
