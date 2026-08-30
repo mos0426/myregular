@@ -2,6 +2,7 @@
 #include <vector>
 #include <cassert>
 #include <utility>
+#include <algorithm>
 
 #include "charset.hpp"
 
@@ -147,83 +148,61 @@ namespace{
         //复杂度:
         //  - 时间复杂度 O(n + m)，空间复杂度 O(n + m)，其中 n = first.size(), m = second.size().
 
-        //遍历 fisrt 和 second 端点，对比 first 和 second 端点的码点值{
-        //根据对比结果，挑选其中一个端点 temp 作下一步处理或把两个端点抵消：
-        //  - 若 first 和 second 当前端点码点值相等:
-        //      - 若两个端点类型不同，则两个端点抵消, first 和 second 迭代器推进, 跳入下一循环;
-        //      - 若两个端点类型相同, 则取任意其中一个端点作下一步处理.
-        //  - 若 first 和 second 当前码点值不等, 取较小值并推进其迭代器.
-        //对比 temp 和上一端点的类型:
-        //  - 上一端点类型为 START:
-        //      - temp 端点类型为 START, 跳入下一循环;
-        //      - temp 端点类型为 END, temp 压入 new_endpoint_set.
-        //  - 上一端点类型为 END:
-        //      - temp 端点类型为 START, temp 压入 new_endpoint_set;
-        //      - temp 端点类型为 END, 跳入下一循环.
-        //}
+
         
         if (first.empty()) return std::vector<Endpoint>(second);
         if (second.empty()) return std::vector<Endpoint>(first);
         std::vector<Endpoint> new_endpoint_set;
+        int counter = 0; // 记录 new_endpoint_set 中多余的 start 端点
         auto first_it = first.begin(), second_it = second.begin();
-
         if (first_it->codepoint < second_it->codepoint){
             new_endpoint_set.push_back(*first_it);
-            first_it++;
+            first_it++, counter++;
         }
         else if (first_it->codepoint > second_it->codepoint){
             new_endpoint_set.push_back(*second_it);
-            second_it++;
+            second_it++, counter++;
         }
-        else{
+        else{ // first_it->codepoint == second_it->codepoint
             new_endpoint_set.push_back(*first_it);
-            first_it++, second_it++;
+            first_it++, second_it++, counter++;
         }
-        assert(new_endpoint_set[0].type == EndpointType::START);
+
+        auto f = [&counter, &new_endpoint_set](std::vector<Endpoint>::const_iterator it) -> void {
+            // 根据 counter的情况判断 it 是否该压入 new_endpoint_set, 更新 counter
+            
+            if (it->type == EndpointType::START){
+                // 没有多余的起点
+                if (counter == 0) new_endpoint_set.push_back(*it);
+                counter++;
+            }
+            else{ // it->tye == EndpointType::END
+                // 只有一个多余的起点
+                if (counter == 1) new_endpoint_set.push_back(*it);
+                counter--;
+            }
+        };
 
         while (true){
-            Endpoint temp;
-            if (first_it == first.end()){
-                for(second_it; second_it != second.end(); second_it++) new_endpoint_set.push_back(*second_it);
-                return new_endpoint_set;   
-            }
-            if (second_it == second.end()){
-                for(first_it; first_it != first.end(); first_it++) new_endpoint_set.push_back(*first_it);
-                return new_endpoint_set;
-            }
-
+            std::vector<Endpoint>::const_iterator temp;
             if (first_it->codepoint < second_it->codepoint){
-                temp = *first_it;
+                f(first_it);
                 first_it++;
+                if (first_it == first.end()){
+                    for (; second_it != second.end(); second_it++) new_endpoint_set.push_back(*second_it);
+                    break;
+                }
             }
             else if (first_it->codepoint > second_it->codepoint){
-                temp = *second_it;
+                f(second_it);
                 second_it++;
-            }
-            else{
-                if (first_it->type == second_it->type){
-                    temp = *first_it;
-                    first_it++, second_it++;
-                }
-                else{
-                    first_it++, second_it++;
-                    continue;
+                if (second_it == second.end()){
+                    for (; first_it != first.end(); first_it++) new_endpoint_set.push_back(*first_it);
+                    break;
                 }
             }
 
-            if (new_endpoint_set.back().type == EndpointType::START){  // 对比前一个端点的类型
-                if (temp.type == EndpointType::START) continue;
-                else new_endpoint_set.push_back(temp);
-            }
-            else{
-                if (temp.type == EndpointType::START) new_endpoint_set.push_back(temp);
-                else {
-                    new_endpoint_set.pop_back();
-                    new_endpoint_set.push_back(temp);
-                }
-            }
         }
-
         return new_endpoint_set;
     }
 }

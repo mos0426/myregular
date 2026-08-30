@@ -36,4 +36,14 @@ TEST(CharSet, Unite){
         ASSERT_TRUE(new_charset_1.contains(23) && new_charset_2.contains(23) && new_charset_3.contains(23));
         ASSERT_TRUE(!new_charset_1.contains(19) && new_charset_2.contains(19) && new_charset_3.contains(19));
     }
+
+    {
+        // 测试区间多个同时被同一个区间被包含关系
+        CharSet cs1 = CharSet(1, 100), cs2 = CharSet(3, 9);
+        cs2.unite_update(15, 50), cs2.unite_update(70, 99);
+
+        auto new_cs = cs1.unite(cs2);
+        ASSERT_TRUE(new_cs.contains(18));
+        ASSERT_TRUE(new_cs.contains(60));
+    }
 }
