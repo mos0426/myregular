@@ -91,6 +91,77 @@ namespace{
     }
 
 
+    namespace{
+        void endpoint_set_difference_re(
+            std::vector<Endpoint>::const_iterator first_it,
+            std::vector<Endpoint>::const_iterator first_end,
+            std::vector<Endpoint>::const_iterator second_it,
+            std::vector<Endpoint>::const_iterator second_end,
+            std::vector<Endpoint> &new_set
+        ){
+            auto first_range_start = first_it, first_range_end = first_it + 1;
+            auto second_range_end = second_it + 1;
+
+            // second_range_end 迭代至第一个 codpoint 大于 first_range_start 的端点
+            while (second_range_end->codepoint <= first_range_start->codepoint){
+                second_range_end += 2;
+                if (second_range_end == second_end){
+                    for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
+                    return ;
+                } 
+            }
+            auto second_range_start = second_range_end - 1;
+
+            if (second_range_start->codepoint <= first_range_start->codepoint){
+                new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
+            }
+            else{ // second_range_start > first_range_start
+                new_set.push_back(*first_range_start);
+                new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::END});
+                new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
+            }
+            second_range_start += 2;
+            if (second_range_start == second_end){
+                ++first_it;
+                 for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
+                return ;
+            }
+            second_range_end += 2;
+
+            while (second_range_end->codepoint < first_range_end->codepoint){
+                new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::END});
+                new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
+                second_range_start += 2;
+                if (second_range_start == second_end){
+                    ++first_it;
+                    for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
+                    return ;
+                }
+                second_range_end += 2;
+            }
+
+            if (second_range_start->codepoint < first_range_end->codepoint){
+                new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::START});
+            }
+            else{ // second_range_start->codepoint >= first_range_end->codepoint
+                new_set.push_back(*first_range_end);
+            }
+
+            first_it = first_range_end + 1;
+            if (first_it == first_end) return ;
+            second_it = second_range_end + 1;
+            if (second_it == second_end){
+                for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
+                return ;
+            }
+            return endpoint_set_difference_re(
+                first_it, first_end, second_it, second_end, new_set
+            );
+        }
+        
+    }
+
+
     std::vector<Endpoint> endpoint_set_difference(
         const std::vector<Endpoint> &first,
         const std::vector<Endpoint> &second
@@ -103,50 +174,12 @@ namespace{
         if (first.empty()) return std::vector<Endpoint>();
         if (second.empty()) return std::vector<Endpoint>(first);
 
-        std::vector<Endpoint> new_enpoint_set;
-        auto first_it = first.begin(), second_it = second.begin();
-
-        while (true){
-            // 检查边界
-            if (first_it == first.end()) break;
-            if(second_it == second.end()){
-                for (; first_it != first.end(); first_it++) new_enpoint_set.push_back(*first_it);
-                break;
-            }
-
-            if (first_it->codepoint < second_it->codepoint){
-                if (new_enpoint_set.empty()) new_enpoint_set.push_back(*first_it);
-                else{
-                    if (new_enpoint_set.back().type != first_it->type) new_enpoint_set.push_back(*first_it);
-                }
-                first_it++;
-            }
-            else if (first_it->codepoint > second_it->codepoint){
-                if (new_enpoint_set.empty()) second_it++;
-                else{
-                    if (new_enpoint_set.back().type == EndpointType::START){
-                        if (second_it->type == EndpointType::START){
-                            new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::END});
-                        }
-                        else{
-                            new_enpoint_set.pop_back();
-                            new_enpoint_set.emplace_back(Endpoint{second_it->codepoint, EndpointType::START});
-                        }
-                    }
-                    second_it++;
-                }
-            }
-            else{  // first_it->codepoint == second_it->codepoint
-                // 端点类型相同，两个端点抵消;
-                // 端点类型不同, second_it 不被 first 包含
-                if (first_it->type != second_it->type) new_enpoint_set.push_back(*first_it);
-                first_it++, second_it++;
-            }
-        }
-
-    return new_enpoint_set;
+        std::vector<Endpoint> new_endpoint_set;
+        endpoint_set_difference_re(
+            first.begin(), first.end(), second.begin(), second.end(), new_endpoint_set
+        );
+        return new_endpoint_set;
     }
-
 
     std::vector<Endpoint> endpoint_set_union(const std::vector<Endpoint> &first, const std::vector<Endpoint> &second){
         //将两个端点编码的区间集合合并为它们的并集（返回新的端点序列 new_endpoint_set）.
