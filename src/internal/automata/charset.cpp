@@ -22,7 +22,6 @@ namespace{
         // 复杂度:
         //  - 时间复杂度 O(n + m)，空间复杂度 O(n + m)，其中 n = first.size(), m = second.size().
 
-        // 按正序分别提取 fisrt 和 second 的码点区间 first_range 和 second_range 逐个作交集运算
 
         if (first.empty() || second.empty()) return std::vector<Endpoint>();
         std::vector<Endpoint> new_endpoint_set;
@@ -40,8 +39,6 @@ namespace{
                     if (counter > 1) new_endpoint_set.push_back(*first_it);
                     --counter, ++first_it;
                     if (first_it == first.end()){
-                        if (counter > 0) ++second_it;
-                        for (;second_it != second.end(); ++second_it) new_endpoint_set.push_back(*second_it);
                         break;
                     } 
                 }
@@ -55,8 +52,6 @@ namespace{
                     if (counter > 1) new_endpoint_set.push_back(*second_it);
                     --counter, ++second_it;
                     if (second_it == second.end()){
-                        if (counter > 0) ++first_it; 
-                        for (; first_it != first.end(); ++first_it) new_endpoint_set.push_back(*first_it);
                         break;
                     }
                 }               
@@ -65,6 +60,7 @@ namespace{
                 if (first_it->type == EndpointType::START && second_it->type == EndpointType::START){
                     new_endpoint_set.push_back(*first_it);
                     counter += 2;
+                    ++first_it, ++second_it;
                 }
                 else{
                     if (first_it->type != second_it->type) ;// 两个端点抵消
@@ -73,16 +69,7 @@ namespace{
                         counter -= 2;
                     }
                     ++first_it, ++second_it;
-                    if (first_it == first.end()){
-                        if (counter > 0) ++second_it;
-                        for (; second_it != second.end(); ++second_it) new_endpoint_set.push_back(*second_it);
-                        break;
-                    }
-                    if (second_it == second.end()){
-                        if (counter > 0) ++first_it;
-                        for (; first_it != first.end(); ++first_it) new_endpoint_set.push_back(*first_it);
-                        break;
-                    }
+                    if (first_it == first.end() || second_it == second.end()) break;
                 }
             }
         }
