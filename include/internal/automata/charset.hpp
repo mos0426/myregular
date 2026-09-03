@@ -41,6 +41,8 @@ public:
     void unite_update(const CharSet &other){
         *this = unite(other);
     };
+    
+    // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的正序区间序列依次添加
     void unite_update(uint32_t start, uint32_t end);
 
     // 字符集取反
