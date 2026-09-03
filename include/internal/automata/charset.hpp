@@ -35,16 +35,13 @@ public:
 
     // 返回 this 和 other 的并集
     CharSet unite(const CharSet &other) const;
-    CharSet unite(uint32_t start, uint32_t end, bool negated) const;
 
 
     // 增加一个码点区间
     void unite_update(const CharSet &other){
         *this = unite(other);
     };
-    void unite_update(uint32_t start, uint32_t end, bool negated=false){
-        *this = unite(start, end, negated);
-    };
+    void unite_update(uint32_t start, uint32_t end);
 
     // 字符集取反
     void negation_update(){negated_ = !negated_;};

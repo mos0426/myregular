@@ -45,9 +45,9 @@ public:
 
     // 增加一个转移(transition), 要求 state 和 target_state(或target_state_set) 都是 this 已存在的状态
     // start 和 end 分别为码点区间的起点和终点
-    void add_transition(uint32_t start, uint32_t end, size_t state, size_t target_state, bool is_negated=false);
-    void add_transition(uint32_t codepoint, size_t state, size_t target_state, bool is_negated=false){
-        add_transition(codepoint, codepoint+1, state, target_state, is_negated);
+    void add_transition(uint32_t start, uint32_t end, size_t state, size_t target_state);
+    void add_transition(uint32_t codepoint, size_t state, size_t target_state){
+        add_transition(codepoint, codepoint+1, state, target_state);
     };
     void add_transition(const CharSet &charset, size_t state, size_t target);
     // 增加一个空转移 (epsilon transition)

@@ -10,7 +10,7 @@ TEST(CharSetTest, BASIC){
     ASSERT_TRUE(cs.contains(32));
     ASSERT_FALSE(cs.contains(64));
 
-    cs.unite_update(48, 72, true);
+    cs.unite_update(CharSet(48, 72, true));
     ASSERT_TRUE(cs.contains(84));
     ASSERT_TRUE(cs.contains(28));
     ASSERT_FALSE(cs.contains(68));
@@ -21,10 +21,15 @@ TEST(CharSetTest, BASIC){
 
 
 TEST(CharSet, Unite){
+    // 除了测试 CharSet::unite, 间接测试端点集的交并差接口:
+    //  - endpoint_set_union;
+    //  - endpoint_set_intersection
+    //  - endpoint_set_difference 
     {
         // 测试区间相离，相交，包含，被包含， negate = true / false
-        CharSet charset1 = CharSet(3, 9), charset1_ = CharSet(3, 9, true);
-        CharSet charset2 = CharSet(5,13), charset2_ = CharSet(5, 13, true);
+        CharSet charset1 = CharSet(3, 9), charset1_ = CharSet(3, 9);
+        CharSet charset2 = CharSet(5,13), charset2_ = CharSet(5, 13);
+        charset1_.negation_update(), charset2_.negation_update();
         charset1.unite_update(10, 11), charset1.unite_update(12, 18), charset1.unite_update(20, 25);
 
         CharSet new_charset_1 = charset1.unite(charset2);
@@ -38,6 +43,7 @@ TEST(CharSet, Unite){
     }
 
     {
+        // 间接测试 endpoint_set_union
         // 测试区间多个同时被同一个区间被包含关系
         CharSet cs1 = CharSet(1, 100), cs2 = CharSet(1, 9);
         cs2.unite_update(15, 50), cs2.unite_update(70, 100);

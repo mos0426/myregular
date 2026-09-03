@@ -310,21 +310,21 @@ CharSet CharSet::unite(const CharSet &other) const {
 }
 
 
-CharSet CharSet::unite(uint32_t start, uint32_t end, bool negated) const {
-    std::vector<Endpoint> other_endpoint_set = {Endpoint{start, EndpointType::START}, Endpoint{end, EndpointType::END}};
-    if (!negated_ && !negated){
-        return CharSet(endpoint_set_union(endpoint_set_, other_endpoint_set), false);
+void CharSet::unite_update(uint32_t start, uint32_t end){
+    if (negated_) *this = unite(CharSet(start, end));
+    else{
+        if (endpoint_set_.empty()){
+            endpoint_set_.emplace_back(Endpoint{start, EndpointType::START});
+            endpoint_set_.emplace_back(Endpoint{start, EndpointType::END});
+        }
+        else{
+            if (start > (endpoint_set_.end()-1)->codepoint){
+                endpoint_set_.emplace_back(Endpoint{start, EndpointType::START});
+                endpoint_set_.emplace_back(Endpoint{end, EndpointType::END});
+            }
+            else *this = unite(CharSet(start, end));
+        }
     }
-    else if (!negated_ && negated){
-        return CharSet(endpoint_set_difference(other_endpoint_set, endpoint_set_), true);
-    }
-    else if (negated_ && !negated){
-        return CharSet(endpoint_set_difference(endpoint_set_, other_endpoint_set), true);
-    }
-    else{ // negated_ && negated
-        return CharSet(endpoint_set_intersection(endpoint_set_, other_endpoint_set), true);
-    }
-}
-
+};
 
 
