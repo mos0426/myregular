@@ -1,5 +1,5 @@
 - DFA
-- 补全端点集合算法测试
+- DFAInterval
 - 抽象端点序列的相关方法，使得他能复用到更多地方
 - NFA transition 结构的重构
     - 设计成与 NFATransition 一致的概念
