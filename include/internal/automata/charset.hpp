@@ -42,7 +42,7 @@ public:
         *this = unite(other);
     };
     
-    // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的正序区间序列依次添加
+    // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
     void unite_update(uint32_t start, uint32_t end);
 
     // 字符集取反
@@ -63,7 +63,6 @@ public:
     CharSet& operator=(CharSet&&) noexcept = default;
 
 private:
-    // 使用 std::map 来存储字符范围的端点，key 为码点，value 为端点类型（起点或终点）
     std::vector<Endpoint> endpoint_set_; 
     // 取反标志，若为 ture, 指定的字符集范围即为 endpoints_ 描述的字符集范围的补集
     bool negated_ = false;

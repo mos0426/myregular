@@ -83,4 +83,32 @@ TEST(CharSet, Unite){
         );
 
     }
+
+    // 间接测试 endpoint_set_difference
+    {
+                // 相离
+        CharSet cs1 = CharSet(1, 3), cs2 = CharSet(4, 6);
+        // 相交
+        cs1.unite_update(7, 10), cs2.unite_update(7, 8), cs2.unite_update(9, 12);
+        // 包含
+        cs1.unite_update(20, 30), cs2.unite_update(20, 28);
+        // 多个同时包含
+        cs1.unite_update(40, 60), cs2.unite_update(43, 45), cs2.unite_update(49, 53), cs2.unite_update(57, 60);
+
+        cs1.negation_update();
+
+        auto new_cs = cs1.unite(cs2);
+
+        // 相离
+        ASSERT_TRUE(!new_cs.contains(2) && new_cs.contains(4));
+        // 相交
+        ASSERT_TRUE(new_cs.contains(7) && !new_cs.contains(8) && new_cs.contains(11));
+        // 包含
+        ASSERT_TRUE(new_cs.contains(20) && new_cs.contains(27) && !new_cs.contains(29));
+        // 多个同时包含
+        ASSERT_TRUE(
+            !new_cs.contains(40) && new_cs.contains(44) && !new_cs.contains(45) && new_cs.contains(49)
+            && !new_cs.contains(55) && new_cs.contains(58) && new_cs.contains(61)
+        );
+    }
 }

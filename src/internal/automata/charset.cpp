@@ -98,18 +98,27 @@ namespace{
                 } 
             }
             auto second_range_start = second_range_end - 1;
-
-            if (second_range_start->codepoint <= first_range_start->codepoint){
-                new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
+            if (second_range_start->codepoint >= first_range_end->codepoint){
+                new_set.push_back(*first_range_start);
+                new_set.push_back(*first_range_end);
+                first_it = first_range_end + 1;
+                if (first_it == first_end) return ;
+                second_it = second_range_end - 1;
+                return endpoint_set_difference_re(
+                    first_it, first_end, second_it, second_end, new_set
+                );
             }
-            else{ // second_range_start > first_range_start
+
+
+            if (second_range_start->codepoint > first_range_start->codepoint){
                 new_set.push_back(*first_range_start);
                 new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::END});
-                new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
             }
+            new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
+
             second_range_start += 2;
             if (second_range_start == second_end){
-                ++first_it;
+                ++first_it; // first_it = first_range_end
                  for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
                 return ;
             }
@@ -120,7 +129,7 @@ namespace{
                 new_set.emplace_back(Endpoint{second_range_end->codepoint, EndpointType::START});
                 second_range_start += 2;
                 if (second_range_start == second_end){
-                    ++first_it;
+                    ++first_it; // first_it = first_range_end
                     for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
                     return ;
                 }
@@ -128,19 +137,15 @@ namespace{
             }
 
             if (second_range_start->codepoint < first_range_end->codepoint){
-                new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::START});
+                new_set.emplace_back(Endpoint{second_range_start->codepoint, EndpointType::END});
             }
             else{ // second_range_start->codepoint >= first_range_end->codepoint
                 new_set.push_back(*first_range_end);
             }
 
-            first_it = first_range_end + 1;
+            first_it += 2;
             if (first_it == first_end) return ;
-            second_it = second_range_end + 1;
-            if (second_it == second_end){
-                for (; first_it != first_end; ++first_it) new_set.push_back(*first_it);
-                return ;
-            }
+
             return endpoint_set_difference_re(
                 first_it, first_end, second_it, second_end, new_set
             );
