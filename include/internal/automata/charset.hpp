@@ -3,19 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-
-enum class EndpointType: uint8_t{
-    // 表示区间端点属于终点还是起点， 区间的表示形式为 [start, end)，即左闭右开区间
-    START = 0,
-    END = 1
-};
-
-
-struct Endpoint{
-    // 码点区间端点
-    uint32_t codepoint;
-    EndpointType type;
-};
+#include "interval.hpp"
 
 
 class CharSet {
@@ -25,34 +13,26 @@ public:
     CharSet() = default;
     ~CharSet() = default;
 
-    CharSet(uint32_t start, uint32_t end, bool negated=false):
-    endpoint_set_(
-        {{start, EndpointType::START}, {end, EndpointType::END}}
-    ), negated_(negated) {};
+    CharSet(uint32_t start, uint32_t end):interval_set_({{start, end}}){};
 
     // 检查给定的码点是否在字符集范围内
     bool contains(uint32_t codepoint) const;
 
-    // 返回 this 和 other 的并集
-    CharSet unite(const CharSet &other) const;
-
-
     // 增加一个码点区间
-    void unite_update(const CharSet &other){
-        *this = unite(other);
-    };
-    
     // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
     void unite_update(uint32_t start, uint32_t end);
-
-    // 字符集取反
-    void negation_update(){negated_ = !negated_;};
+    void unite_update(const CharSet &other);
 
     // 增加一个通配符字符集
     void unite_wildcard_update(){
-        endpoint_set_.clear();
-        negated_ = true;
+        interval_set_.clear();
+        interval_set_.push_back({CODEPOINT_MIN, CODEPOINT_MAX});
     };
+
+    // 取反字符集
+    // 例如，字符集为 [1, 3), [5, 8) 时，取反后为:
+    // [CODEPOINT_MIN, 1), [3, 5), [8, CODEPOINT_MAX)
+    void negation_update();
 
     // 禁止拷贝构造和拷贝赋值
     CharSet(const CharSet&) = default;
@@ -63,13 +43,6 @@ public:
     CharSet& operator=(CharSet&&) noexcept = default;
 
 private:
-    std::vector<Endpoint> endpoint_set_; 
-    // 取反标志，若为 ture, 指定的字符集范围即为 endpoints_ 描述的字符集范围的补集
-    bool negated_ = false;
-
-    CharSet(std::vector<Endpoint> endpoint_set, bool negated): endpoint_set_(endpoint_set), negated_(negated) {};
+    std::vector<Interval> interval_set_; 
 };
 
-
-// 检测 endpoint_set 是否合法
-bool check_endpoint_set(const std::vector<Endpoint> endpoint_set);

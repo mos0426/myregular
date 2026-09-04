@@ -119,16 +119,18 @@ void NFA::add_transition(uint32_t start, uint32_t end, size_t state, size_t targ
 }
 
 
-void NFA::add_transition(const CharSet &charset, size_t state, size_t target_state){
+void NFA::add_transition(const CharSet &char_set, size_t state, size_t target_state){
+    // 增加一个转移(transition), 要求 state 和 target_state 都是 this 已存在的状态
+
     std::vector<NFATransition> &transitions = transition_table_[state];
     for (auto i = transitions.begin(); i != transitions.end(); i++){
         if (i->target_state == target_state){
-            i->char_set.unite_update(charset);
-            return ;
+            i->char_set.unite_update(char_set);
+            return;
         }
     }
-    transitions.emplace_back(NFATransition{target_state, charset});
-};
+    transitions.emplace_back(NFATransition{target_state, char_set});
+}
 
 
 void NFA::add_wildcard_transition(size_t state, size_t target_state){

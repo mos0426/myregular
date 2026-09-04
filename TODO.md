@@ -1,6 +1,8 @@
 - DFA
 - DFAInterval
-- 抽象端点序列的相关方法，使得他能复用到更多地方
+- 补全重构后的 CharSet 测试
+- 自定义码点数据结构
+    - 兼容无穷大和无穷小的表示
 - NFA transition 结构的重构
     - 设计成与 NFATransition 一致的概念
 - RepetitionNode 编译及相对的 NFA, DFA机制的优化

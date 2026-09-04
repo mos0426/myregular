@@ -116,17 +116,11 @@ namespace{
     };
 
     size_t compile_charclass(const CharClassNode &node, NFA &nfa, size_t input_state){
-        if (node.ranges.empty() && node.negated){  // 字符集为空，且区间取反，即为通配符转移
-            size_t output_state = nfa.new_state();
-            nfa.add_wildcard_transition(input_state, output_state);
-            return output_state;
-        }
-        assert(!node.ranges.empty());
         size_t output_state = nfa.new_state();
        
         CharSet charset = CharSet();
-        for (auto it = node.ranges.begin(); it != node.ranges.end(); it++){
-            charset.unite_update(it->start, it->end);
+        for (auto range: node.ranges){
+            charset.unite_update(range.start, range.end);
         }
         if (node.negated) charset.negation_update();
         nfa.add_transition(charset, input_state, output_state);

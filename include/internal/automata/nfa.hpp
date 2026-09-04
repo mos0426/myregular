@@ -49,7 +49,7 @@ public:
     void add_transition(uint32_t codepoint, size_t state, size_t target_state){
         add_transition(codepoint, codepoint+1, state, target_state);
     };
-    void add_transition(const CharSet &charset, size_t state, size_t target);
+    void add_transition(const CharSet &char_set, size_t state, size_t target_state);
     // 增加一个空转移 (epsilon transition)
     void add_epsilon_transition(size_t state, size_t target_state);
 
