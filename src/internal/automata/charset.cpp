@@ -66,16 +66,17 @@ void CharSet::unite_update(const CharSet &other){
         if (it1 == interval_set_.end()){
             for (; it2 != other.interval_set_.end(); ++it2) {
                 result.interval_set_.push_back(*it2);
-                break;
             }
+            break;
         }
         if (it2 == other.interval_set_.end()){
             for (; it1 != interval_set_.end(); ++it1){
                 result.interval_set_.push_back(*it1);
-                break;
             }
+            break;
         }
 
+        // 两个区间不相交的情况
         if (it1->end < it2->start){
             result.interval_set_.push_back(*it1);
             ++it1;
@@ -87,18 +88,55 @@ void CharSet::unite_update(const CharSet &other){
             continue;
         }
 
+        // 两个区间相交的情况
         // 合并区间
         Interval merged_interval;
         merged_interval.start = std::min(it1->start, it2->start);
-        merged_interval.end = std::max(it1->end, it2->end);
+        std::vector<Interval>::const_iterator *compared_it_p;
+        std::vector<Interval>::const_iterator compared_end;
+        if (it1->end > it2->end){
+            merged_interval.end = it1->end;
+            ++it1;
+            compared_it_p = &it2;
+            compared_end = other.interval_set_.end();
+        }
+        else if (it1->end < it2->end){
+            merged_interval.end = it2->end;
+            ++it2;
+            compared_it_p = &it1;
+            compared_end = interval_set_.end();
+        }
+        else{
+            merged_interval.end = it1->end;
+            ++it1;
+            ++it2;
+            result.interval_set_.push_back(merged_interval);
+            continue;
+        }
+
+
+        // 同时被包含多个区间的情况
+        while ((*compared_it_p)->end <= merged_interval.end){
+            ++(*compared_it_p);
+            if (*compared_it_p == compared_end) break;
+        }
+
+        if (*compared_it_p == compared_end){
+            result.interval_set_.push_back(merged_interval);
+            continue;
+        }
+
+        if ((*compared_it_p)->start <= merged_interval.end){
+            merged_interval.end = (*compared_it_p)->end;
+            ++(*compared_it_p);
+        }
+
         result.interval_set_.push_back(merged_interval);
-        ++it1;
-        ++it2;
+
     }
     *this = result;
 
 }
-
 
 void CharSet::negation_update(){
     // 取反字符集
@@ -125,8 +163,8 @@ void CharSet::negation_update(){
         pred_end = it->end;
         ++it;
     }
-
-    if (it->end != CODEPOINT_MAX) negated_intervals.push_back({pred_end, CODEPOINT_MAX});
+    negated_intervals.push_back({pred_end, it->start});
+    if (it->end != CODEPOINT_MAX) negated_intervals.push_back({it->end, CODEPOINT_MAX});
     
     interval_set_.swap(negated_intervals);
 }
