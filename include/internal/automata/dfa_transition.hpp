@@ -28,7 +28,7 @@ public:
     ~DFATransition() = default;
 
     // 根据输入码点返回转移结果
-    size_t next_state(uint32_t codepoint);
+    size_t next_state(uint32_t codepoint) const;
 
     // 添加一个原始的“码点区间 → 目标状态”映射
     // 使用此接口构建 DFA 时, 需要确保构造过程的码点区间对目标状态映射不会有冲突，此接口不会对冲突的码点区间进行正确性检查

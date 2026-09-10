@@ -6,7 +6,7 @@
 
 #include "dfa_transition.hpp"
 
-size_t DFATransition::next_state(uint32_t codepoint){
+size_t DFATransition::next_state(uint32_t codepoint) const{
     for (auto interval: intervals_){
         if (codepoint >= interval.start && codepoint < interval.end){
             return interval.target_state;
