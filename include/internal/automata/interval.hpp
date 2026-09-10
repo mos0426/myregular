@@ -25,3 +25,13 @@ struct DFAInterval{
     uint32_t end;
     size_t target_state;
 };
+
+
+struct SubsetInterval{
+    // 在子集构造法中，DFA 的一个状态对应 NFA 的一个状态集合。对于同一状态集合下的不同输入字符，如果它们跳转到的下一个状态集合相同，
+    // 则这些字符可以被合并为一个连续的区间。本结构体即用于记录这一映射关系。
+    // 区间为左闭右开
+    uint32_t start;
+    uint32_t end;
+    std::vector<size_t> target_state_set;
+};
