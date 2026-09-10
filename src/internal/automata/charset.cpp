@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <vector>
+#include <utility>
 
 #include "charset.hpp"
 
@@ -94,17 +95,23 @@ void CharSet::unite_update(const CharSet &other){
         merged_interval.start = std::min(it1->start, it2->start);
         std::vector<Interval>::const_iterator *compared_it_p;
         std::vector<Interval>::const_iterator compared_end;
+        std::vector<Interval>::const_iterator *another_it_p;
+        std::vector<Interval>::const_iterator another_end;
         if (it1->end > it2->end){
             merged_interval.end = it1->end;
             ++it1;
             compared_it_p = &it2;
             compared_end = other.interval_set_.end();
+            another_it_p = &it1;
+            another_end = interval_set_.end();
         }
         else if (it1->end < it2->end){
             merged_interval.end = it2->end;
             ++it2;
             compared_it_p = &it1;
             compared_end = interval_set_.end();
+            another_it_p = &it2;
+            another_end = other.interval_set_.end();
         }
         else{
             merged_interval.end = it1->end;
@@ -116,22 +123,30 @@ void CharSet::unite_update(const CharSet &other){
 
 
         // 同时被包含多个区间的情况
-        while ((*compared_it_p)->end <= merged_interval.end){
-            ++(*compared_it_p);
-            if (*compared_it_p == compared_end) break;
-        }
+        while (true){
+            while ((*compared_it_p)->end <= merged_interval.end){
+                ++(*compared_it_p);
+                if (*compared_it_p == compared_end) break;
+            }
 
-        if (*compared_it_p == compared_end){
+            if (*compared_it_p == compared_end){
+                result.interval_set_.push_back(merged_interval);
+                break;
+            }
+
+            if ((*compared_it_p)->start <= merged_interval.end){
+                merged_interval.end = (*compared_it_p)->end;
+                 ++(*compared_it_p);
+                if (*another_it_p != another_end && (*another_it_p)->start <= merged_interval.end){
+                    std::swap(compared_it_p, another_it_p);
+                    std::swap(compared_end, another_end);
+                    continue;
+                }
+            }
+            
             result.interval_set_.push_back(merged_interval);
-            continue;
+            break;
         }
-
-        if ((*compared_it_p)->start <= merged_interval.end){
-            merged_interval.end = (*compared_it_p)->end;
-            ++(*compared_it_p);
-        }
-
-        result.interval_set_.push_back(merged_interval);
 
     }
     *this = result;

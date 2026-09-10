@@ -12,14 +12,14 @@ TEST(CharSetTest, BASIC){
     ASSERT_FALSE(cs.contains(64));
 
     cs.unite_update(CODEPOINT_MIN, 48);
-    cs.unite_update(72, CODEPOINT_MAX);
-    // cs 现在包含的区间为 [CODEPOINT_MIN, 64), [72, CODEPOINT_MAX)
+    cs.unite_update(75, CODEPOINT_MAX);
+    // cs 现在包含的区间为 [CODEPOINT_MIN, 64), [75, CODEPOINT_MAX)
     ASSERT_TRUE(cs.contains(84));
     ASSERT_TRUE(cs.contains(28));
     ASSERT_FALSE(cs.contains(68));
 
     cs.negation_update();
-    // cs 现在包含的区间为 [64, 72)
+    // cs 现在包含的区间为 [64, 75)
     ASSERT_FALSE(cs.contains(84));
     ASSERT_FALSE(cs.contains(28));
     ASSERT_TRUE(cs.contains(68));
@@ -30,12 +30,20 @@ TEST(CharSetTest, BASIC){
     cs2.unite_update(60, 66);
     cs2.unite_update(68, 70);
     cs2.unite_update(71, 72);
-    // cs2 现在包含的区间为 [24, 36), [60, 66), [68, 70), [71, 72)
+    cs2.unite_update(74, 80);
+    // cs2 现在包含的区间为 [24, 36), [60, 66), [68, 70), [71, 72), [74, 80)
+    cs.unite_update(78, 85);
+    // cs 现在包含的区间为  cs 现在包含的区间为 [64, 75)， [78, 85)
     cs.unite_update(cs2);
-    // cs 现在包含的区间为 [24, 36), [60, 72)
+    // cs 现在包含的区间为 [24, 36), [60, 85)
     ASSERT_TRUE(cs.contains(28));
     ASSERT_TRUE(cs.contains(68));
-    ASSERT_FALSE(cs.contains(84));
+    ASSERT_FALSE(cs.contains(86));
+    auto intervals = cs.get_intervals();
+    // 检查 intervals 的正确性
+    for (auto it = intervals.begin() + 1; it != intervals.end(); ++it){
+        ASSERT_LT((it-1)->end, it->start);
+    }
 
     cs2.negation_update();
     // cs2 现在包含的区间为 [CODEPOINT_MIN, 24), [36, 60), [66, 68), [70, 71), [72, CODEPOINT_MAX)
