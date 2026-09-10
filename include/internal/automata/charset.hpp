@@ -34,6 +34,8 @@ public:
     // [CODEPOINT_MIN, 1), [3, 5), [8, CODEPOINT_MAX)
     void negation_update();
 
+    const std::vector<Interval> &get_intervals() const {return interval_set_;};
+
     // 禁止拷贝构造和拷贝赋值
     CharSet(const CharSet&) = default;
     CharSet& operator=(const CharSet&) = default;
