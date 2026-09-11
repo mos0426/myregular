@@ -11,3 +11,7 @@ bool state_set_contain(const std::vector<size_t> &state_set, size_t state){
     for (auto s: state_set) if (s == state) return true;
     return false;
 }
+
+
+// 计算 first 和 second 的并集并返回
+std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std::vector<size_t> &second);
