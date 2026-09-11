@@ -18,10 +18,15 @@ public:
     // 检查给定的码点是否在字符集范围内
     bool contains(uint32_t codepoint) const;
 
+    // 计算 other 的并集并返回
+    CharSet unite(const CharSet &other) const;
+
     // 增加一个码点区间
     // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
     void unite_update(uint32_t start, uint32_t end);
-    void unite_update(const CharSet &other);
+    void unite_update(const CharSet &other){
+        *this = unite(other);
+    };
 
     // 增加一个通配符字符集
     void unite_wildcard_update(){

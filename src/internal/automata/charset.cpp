@@ -22,43 +22,7 @@ bool CharSet::contains(uint32_t codepoint) const {
 }
 
 
-void CharSet::unite_update(uint32_t start, uint32_t end){
-    // 增加一个码点区间
-    // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
-
-    if (interval_set_.empty()){
-        interval_set_.push_back({start, end});
-        return;
-    }
-
-    Interval &last_interval = interval_set_.back();
-    if (last_interval.end < start){
-        interval_set_.push_back({start, end});
-        return;
-    }
-
-    auto it = interval_set_.begin();
-    while (it != interval_set_.end()){
-        if (it->end < start){
-            ++it;
-            continue;
-        }
-
-        if (it->start > end){
-            interval_set_.insert(it, {start, end});
-            return;
-        }
-
-        // 合并区间
-        it->start = std::min(it->start, start);
-        it->end = std::max(it->end, end);
-        return;
-    }
-}
-
-
-void CharSet::unite_update(const CharSet &other){
-    // 计算两个字符集的并集，并更新当前字符集为并集结果
+CharSet CharSet::unite(const CharSet &other) const {
     CharSet result;
     std::vector<Interval>::const_iterator it1 = interval_set_.begin();
     std::vector<Interval>::const_iterator it2 = other.interval_set_.begin();
@@ -149,9 +113,44 @@ void CharSet::unite_update(const CharSet &other){
         }
 
     }
-    *this = result;
-
+    return result;
 }
+
+
+void CharSet::unite_update(uint32_t start, uint32_t end){
+    // 增加一个码点区间
+    // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
+
+    if (interval_set_.empty()){
+        interval_set_.push_back({start, end});
+        return;
+    }
+
+    Interval &last_interval = interval_set_.back();
+    if (last_interval.end < start){
+        interval_set_.push_back({start, end});
+        return;
+    }
+
+    auto it = interval_set_.begin();
+    while (it != interval_set_.end()){
+        if (it->end < start){
+            ++it;
+            continue;
+        }
+
+        if (it->start > end){
+            interval_set_.insert(it, {start, end});
+            return;
+        }
+
+        // 合并区间
+        it->start = std::min(it->start, start);
+        it->end = std::max(it->end, end);
+        return;
+    }
+}
+
 
 void CharSet::negation_update(){
     // 取反字符集
