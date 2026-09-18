@@ -37,6 +37,8 @@ public:
     // 重置 DFA, current_state_ 重置回初始状态
     void reset(){current_state_ = 1;};
 
+    friend DFA nfa_to_dfa(const NFA &nfa, bool minimize=true);
+
     // 禁止拷贝构造和拷贝赋值
     DFA(const DFA&) = delete;
     DFA& operator=(const DFA&) = delete;
@@ -49,4 +51,9 @@ private:
     std::vector<DFATransition> transition_table_;
     size_t current_state_;
     std::vector<size_t> final_state_set_;
+
+    size_t new_state(){
+        transition_table_.emplace_back();
+        return transition_table_.size()-1;
+    };
 };
