@@ -4,6 +4,8 @@
 #include <cassert>
 #include <utility>
 #include <tuple>
+#include <unordered_map>
+#include <queue>
 
 #include "compile.hpp"
 #include "interval.hpp"
@@ -271,4 +273,82 @@ namespace{
         }
     };
 
+
+    struct StateSetHash {
+        // State Set 的哈希函数，使用 Boost 风格的 hash_combine 算法。
+        // state 具体表现为正序排列且无重复元素的 std::vector<size_t>
+        size_t operator()(const std::vector<size_t> &states) const {
+            size_t h = 0;
+            for (size_t s : states) {
+                h ^= std::hash<size_t>{}(s) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
+        }
+    };
+
+}
+
+
+DFA nfa_to_dfa(const NFA &nfa, bool minimize){
+    // 将 NFA 转换为 DFA, 并可选择是否进行最小化
+    // 参考 Subset construction
+
+    DFA dfa;
+    // 记录已经发现过的状态集和dfa状态的映射表，包括待处理的(pending_state_sets) 和已经处理过的
+    std::unordered_map<std::vector<size_t>, size_t, StateSetHash> discovered_tab;
+
+        // 判断是否属于最终状态
+    const std::vector<size_t> &nfa_final_state_set = nfa.final_state_set_;
+    auto is_final = [&nfa_final_state_set](const std::vector<size_t> &state_set) -> bool {
+        auto it = nfa_final_state_set.begin(), it2 = state_set.begin();
+        while (it != nfa_final_state_set.end() && it2 != state_set.end()){
+            if (*it > *it2) ++it2;
+            else if (*it < *it2) ++it;
+            else return true;
+        }
+        return false;
+    };
+
+    // 待处理的队列
+    std::queue<std::vector<size_t>> pending;
+    pending.emplace(nfa.epsilon_closure({0}));
+    // dfa 初始状态为 1
+    discovered_tab.emplace(pending.front(), 1);
+    if (is_final(pending.front())) dfa.add_final_state(1);
+
+    while (!pending.empty()){
+        std::vector<size_t> processing_state_set = pending.front();
+        pending.pop();
+        size_t dfa_state = discovered_tab[processing_state_set];
+
+        // 收集 processing_state_set 包含的所有 NFATransition
+        std::vector<const NFATransition*> processing_nfa_transitions; 
+        for (auto state: processing_state_set){
+            for (const NFATransition &t : nfa.transition_table_[state]){
+                processing_nfa_transitions.push_back(&t);
+            }
+        }
+
+        // 子集的边转换成 dfa 的边
+        SubsetIntervalsCursor cursor = SubsetIntervalsCursor(processing_nfa_transitions);
+        auto &dfa_intervals = dfa.transition_table_[dfa_state].intervals_;
+        while (cursor.more()){
+            auto [start, end, target_state_set] = cursor.next();
+            auto it = discovered_tab.find(target_state_set);
+            if (it == discovered_tab.end()){
+                size_t dfa_target = dfa.new_state();
+                // 判断 dfa_target 是否是最终状态
+                if (is_final(target_state_set)) dfa.add_final_state(dfa_target);
+                pending.push(target_state_set);
+                discovered_tab.emplace(target_state_set, dfa_target);
+                dfa_intervals.push_back({start, end, dfa_target});
+            }
+            else{
+                size_t dfa_target = it->second;
+                dfa_intervals.push_back({start, end, dfa_target});
+            }
+        }
+
+    }
+    return dfa;
 }

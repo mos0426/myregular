@@ -5,6 +5,9 @@
 #include <vector>
 
 #include "charset.hpp"
+#include "dfa.hpp"
+
+class DFA;
 
 
 struct NFATransition
@@ -68,6 +71,8 @@ public:
     void set_final_state_set(std::vector<size_t> final_state_set);
 
     std::vector<size_t> get_current_state_set() {return current_state_set_;};
+
+    friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
     // 禁止拷贝构造和拷贝赋值
     NFA(const NFA&) = delete;

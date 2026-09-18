@@ -5,6 +5,7 @@
 
 #include "dfa_transition.hpp"
 
+class NFA;
 
 class DFA{
     // 确定有穷状态机 (DFA)
@@ -37,7 +38,7 @@ public:
     // 重置 DFA, current_state_ 重置回初始状态
     void reset(){current_state_ = 1;};
 
-    friend DFA nfa_to_dfa(const NFA &nfa, bool minimize=true);
+    friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
     // 禁止拷贝构造和拷贝赋值
     DFA(const DFA&) = delete;
@@ -55,5 +56,20 @@ private:
     size_t new_state(){
         transition_table_.emplace_back();
         return transition_table_.size()-1;
+    };
+
+    void add_final_state(size_t state){
+        auto it = final_state_set_.begin();
+
+        while (it != final_state_set_.end()){
+            if (*it < state) ++it;
+            else if (*it > state){
+                final_state_set_.insert(it, state);
+                return ;
+            }
+            else return ;
+        }
+        final_state_set_.push_back(state);
+        return ;
     };
 };

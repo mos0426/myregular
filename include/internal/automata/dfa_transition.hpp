@@ -2,10 +2,13 @@
 
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <limits>
 
 #include "interval.hpp"
 
+class DFA;
+class NFA;
 
 class DFATransition{
     // DFA 的状态转移函数
@@ -25,6 +28,8 @@ public:
     // 例如，已有的码点区间为 [1, 3) → 2, [5, 8) → 3, 当调用 add_interval(2, 6, 4) 时，最终的码点区间为 [1, 8) → 4
     // 码点区间为左闭右开
     void add_interval(uint32_t start, uint32_t end, size_t target_state);
+
+    friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
     // 允许拷贝构造和拷贝赋值
     DFATransition(const DFATransition&) = default;

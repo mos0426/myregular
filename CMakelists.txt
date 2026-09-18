@@ -37,7 +37,11 @@ add_library(automata STATIC
 target_include_directories(automata PUBLIC include/internal/automata)
 
 #Lib compile
-add_library(compile STATIC src/internal/compile/compile_to_nfa.cpp)
+add_library(compile STATIC 
+    src/internal/compile/compile_to_nfa.cpp
+    src/internal/compile/nfa_to_dfa.cpp
+    src/internal/compile/utility.cpp
+  )
 target_include_directories(compile PUBLIC include/internal/compile)
 target_link_libraries(compile PUBLIC automata expression)
 
