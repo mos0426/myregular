@@ -137,13 +137,16 @@ namespace{
     public:
         SubsetIntervalsCursor() = delete;
 
-        SubsetIntervalsCursor(NFATransitionCursorMerger &merger): merger_(merger){
+        SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
+            for (auto p: ps){
+                merger_.add_cursor(NFATransitionCursor(*p));
+            }
             auto [endpoint, target] = merger_.next();
             assert(endpoint.is_start);
-            curret_start_ = endpoint.codepoint;
+            current_start_ = endpoint.codepoint;
             refcount_.emplace_back(std::make_pair(target, 1));
             next();
-        };
+        }
         
         std::tuple<uint32_t, uint32_t, std::vector<size_t>> next(){
 
@@ -157,7 +160,7 @@ namespace{
             
             auto [endpoint, target_state] = merger_.next();
             // endpoint 与 current_start 重合的情况
-            if (endpoint.codepoint == curret_start_){
+            if (endpoint.codepoint == current_start_){
                 auto it = refcount_.begin();
                 if (endpoint.is_start){
                     while (it != refcount_.end()){
@@ -197,7 +200,7 @@ namespace{
             if (endpoint.is_start){
                 if (refcount_.empty()){
                     refcount_.emplace_back(std::make_pair(target_state, 1));
-                    curret_start_ = endpoint.codepoint;
+                    current_start_ = endpoint.codepoint;
                     return next();
                 }
                 auto it = refcount_.begin();
@@ -210,7 +213,7 @@ namespace{
                         auto result = subset_interval_buffer_;
                         push_interval(endpoint.codepoint);
                         refcount_.insert(it, {target_state, 1});
-                        curret_start_ = endpoint.codepoint;
+                        current_start_ = endpoint.codepoint;
                         return result;
                     }
                     ++it;
@@ -231,7 +234,7 @@ namespace{
                                 auto result = subset_interval_buffer_;
                                 push_interval(endpoint.codepoint);
                                 refcount_.erase(it);
-                                if (!refcount_.empty()) curret_start_ = endpoint.codepoint;
+                                if (!refcount_.empty()) current_start_ = endpoint.codepoint;
                                 return result;
                             }
                             return next();
@@ -248,9 +251,9 @@ namespace{
         bool more(){return has_more_;};
 
     private:
-        NFATransitionCursorMerger &merger_;
+        NFATransitionCursorMerger merger_;
         // 目前处理区间的起点
-        uint32_t curret_start_;
+        uint32_t current_start_;
         // 用于记录目前处理区间的 target state 和每个 target state 出现的次数
         // refcount_ 按照 target state 的数值大小正序排列
         std::vector<std::pair<size_t, int>> refcount_;
@@ -263,7 +266,7 @@ namespace{
             for (auto i: refcount_){
                 target_state_set.push_back(i.first);
             }
-            subset_interval_buffer_ = {curret_start_, end, target_state_set};
+            subset_interval_buffer_ = {current_start_, end, target_state_set};
             return ;
         }
     };
