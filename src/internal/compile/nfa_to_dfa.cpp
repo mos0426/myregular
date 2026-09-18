@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <cassert>
 #include <utility>
+#include <tuple>
 
+#include "compile.hpp"
 #include "interval.hpp"
 #include "charset.hpp"
-#include "subset_transition.hpp"
 #include "utility.hpp"
+#include "dfa.hpp"
+#include "nfa.hpp"
 
 namespace{
 
@@ -137,56 +140,62 @@ namespace{
         // 目前处理区间的目标状态集
         std::vector<size_t> target_state_set;
     }
-    class SubsetIntervalsBuilder{
+
+
+    class SubsetIntervalsCursor{
     public:
-        SubsetIntervalsBuilder() = default;
-        
-        std::vector<SubsetInterval> build(NFATransitionCursorMerger &merger){
-            intervals_.clear();
-            while (merger.more()){
-                auto [endpoint, target_state] = merger.next();
-                push_endpoint(endpoint, target_state);
-            }
-            assert(refcount_.empty());
+        SubsetIntervalsCursor() = delete;
 
-            // 转移 interval_ 的所有权
-            return std::move(intervals_);
+        SubsetIntervalsCursor(NFATransitionCursorMerger &merger): merger_(merger){
+            auto [endpoint, target] = merger_.next();
+            assert(endpoint.is_start);
+            curret_start_ = endpoint.codepoint;
+            refcount_.emplace_back(std::make_pair(target, 1));
+            next();
         };
+        
+        std::tuple<uint32_t, uint32_t, std::vector<size_t>> next(){
 
-    private:
-        // intervals_ 始终保持正序排列
-        std::vector<SubsetInterval> intervals_;
-        // 目前处理区间的起点
-        uint32_t curret_start;
-        // 用于记录目前处理区间的 target state 和每个 target state 出现的次数
-        // refcount_ 按照 target state 的数值大小正序排列
-        std::vector<std::pair<size_t, int>> refcount_;
+            assert(has_more_);
 
-        void push_endpoint(Endpoint endpoint, size_t target_state){
+            if (!merger_.more()){
+                has_more_ = false;
+                assert(refcount_.empty());
+                return subset_interval_buffer_;
+            }
+            
+            auto [endpoint, target_state] = merger_.next();
             // endpoint 与 current_start 重合的情况
-            if (endpoint.codepoint == curret_start){
+            if (endpoint.codepoint == curret_start_){
                 auto it = refcount_.begin();
                 if (endpoint.is_start){
                     while (it != refcount_.end()){
                         if (it->first >= target_state){
                             if (it->first == target_state){
                                 ++(it->second);
-                                return ;
+                                return next();
                             }
                             refcount_.insert(it, {target_state, 1});
-                            return ;
+                            return next();
                         }
                         ++it;
                     }
                     refcount_.emplace_back(std::make_pair(target_state, 1));
-                    return ;
+                    return next();
                 }
                 else{ // !endpoint.is_start
                     while (it != refcount_.end()){
                         if (it->first == target_state){
                             --(it->second);
-                            if (it->second == 0) refcount_.erase(it);
-                            return ;
+                            if (it->second == 0){
+                                refcount_.erase(it);
+                                // 判断是否走到尽头
+                                if (refcount_.empty() & !merger_.more()){
+                                    has_more_ =false;
+                                    return subset_interval_buffer_;
+                                }
+                            }
+                            return next();
                         }
                     }
                     // endpoint 为终点时，refcount 必然包含 target_state
@@ -197,26 +206,28 @@ namespace{
             if (endpoint.is_start){
                 if (refcount_.empty()){
                     refcount_.emplace_back(std::make_pair(target_state, 1));
-                    curret_start = endpoint.codepoint;
-                    return ;
+                    curret_start_ = endpoint.codepoint;
+                    return next();
                 }
                 auto it = refcount_.begin();
                 while (it != refcount_.end()){
                     if (it->first >= target_state){
                         if (it->first == target_state){
                             ++(it->second);
-                            return ;
+                            return next();
                         }
+                        auto result = subset_interval_buffer_;
                         push_interval(endpoint.codepoint);
                         refcount_.insert(it, {target_state, 1});
-                        curret_start = endpoint.codepoint;
-                        return ;
+                        curret_start_ = endpoint.codepoint;
+                        return result;
                     }
                     ++it;
                 }
+                auto result = subset_interval_buffer_;
                 push_interval(endpoint.codepoint);
                 refcount_.emplace_back(std::make_pair(target_state, 1));
-                return ;
+                return result;
             }
             else{ // !endpoint.is_start
                 assert(!refcount_.empty());
@@ -226,11 +237,13 @@ namespace{
                         if (it->first == target_state){
                             --(it->second);
                             if (it->second == 0){
+                                auto result = subset_interval_buffer_;
                                 push_interval(endpoint.codepoint);
                                 refcount_.erase(it);
-                                if (!refcount_.empty()) curret_start = endpoint.codepoint;
+                                if (!refcount_.empty()) curret_start_ = endpoint.codepoint;
+                                return result;
                             }
-                            return ;
+                            return next();
                         }
                         // endpoint 为终点时，refcount 必然包含 target_state
                         assert(false);
@@ -239,7 +252,19 @@ namespace{
                 // endpoint 为终点时，refcount 必然包含 target_state
                 assert(false);
             }
-        }
+        };
+
+        bool more(){return has_more_;};
+
+    private:
+        NFATransitionCursorMerger &merger_;
+        // 目前处理区间的起点
+        uint32_t curret_start_;
+        // 用于记录目前处理区间的 target state 和每个 target state 出现的次数
+        // refcount_ 按照 target state 的数值大小正序排列
+        std::vector<std::pair<size_t, int>> refcount_;
+        bool has_more_;
+        std::tuple<uint32_t, uint32_t, std::vector<size_t>> subset_interval_buffer_;
 
         void push_interval(uint32_t end){
             assert(!refcount_.empty());
@@ -247,17 +272,9 @@ namespace{
             for (auto i: refcount_){
                 target_state_set.push_back(i.first);
             }
-            intervals_.emplace_back(SubsetInterval{curret_start, end, std::move(target_state_set)});
+            subset_interval_buffer_ = {curret_start_, end, target_state_set};
             return ;
         }
     };
 
 }
-
-
-SubsetTransition::SubsetTransition(const std::vector<const NFATransition*> &nfa_transitions){
-    NFATransitionCursorMerger merger;
-     for (auto p: nfa_transitions) merger.add_cursor(NFATransitionCursor(*p));
-     SubsetIntervalsBuilder builder;
-     intervals_ = builder.build(merger);
-};
