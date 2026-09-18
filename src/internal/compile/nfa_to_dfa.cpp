@@ -133,15 +133,6 @@ namespace{
     };
 
 
-    inline std::vector<SubsetInterval> build_subset_intervals(NFATransitionCursorMerger &merger){
-        std::vector<SubsetInterval> intervals;
-        // 目前处理区间的起点
-        uint32_t current_start;
-        // 目前处理区间的目标状态集
-        std::vector<size_t> target_state_set;
-    }
-
-
     class SubsetIntervalsCursor{
     public:
         SubsetIntervalsCursor() = delete;
