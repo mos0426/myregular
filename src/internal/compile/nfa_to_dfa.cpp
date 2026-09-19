@@ -86,7 +86,7 @@ namespace{
             else{
                 cursors_[0] = std::move(cursors_.back());
                 cursors_.pop_back();
-                shift_down(0);
+                if (!cursors_.empty()) shift_down(0);
             }
             return result;
         };
@@ -102,12 +102,12 @@ namespace{
         void shift_down(size_t i){
             // 下沉 cursor[i], 直到 cursor[i] 大于它的所有字节点
 
-            if (cursors_.size() <= (i*2)) return ;
+            if ((cursors_.size() - 1) <= (i*2)) return ;
             // 左子节点和右子节点的索引
             size_t l = i*2 + 1;
             // 最小子节点的索引
             size_t min_children;
-            if (cursors_.size() < (i*2+1)){
+            if ((cursors_.size() - 1) < (i*2+1)){
                 size_t r = i*2 + 2;
                 min_children = cursors_[l] < cursors_[r] ? l : r;
             }
@@ -140,9 +140,12 @@ namespace{
         SubsetIntervalsCursor() = delete;
 
         SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
+            assert(!ps.empty());
             for (auto p: ps){
                 merger_.add_cursor(NFATransitionCursor(*p));
             }
+            assert(merger_.more());
+            has_more_ = true;
             auto [endpoint, target] = merger_.next();
             assert(endpoint.is_start);
             current_start_ = endpoint.codepoint;
@@ -187,7 +190,7 @@ namespace{
                                 refcount_.erase(it);
                                 // 判断是否走到尽头
                                 if (refcount_.empty() & !merger_.more()){
-                                    has_more_ =false;
+                                    has_more_ = false;
                                     return subset_interval_buffer_;
                                 }
                             }
@@ -196,6 +199,7 @@ namespace{
                     }
                     // endpoint 为终点时，refcount 必然包含 target_state
                     assert(false);
+                    return subset_interval_buffer_;
                 }
             }
 
@@ -247,6 +251,7 @@ namespace{
                 }
                 // endpoint 为终点时，refcount 必然包含 target_state
                 assert(false);
+                return subset_interval_buffer_;
             }
         };
 
@@ -311,14 +316,15 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
 
     // 待处理的队列
     std::queue<std::vector<size_t>> pending;
-    pending.emplace(nfa.epsilon_closure({0}));
+    std::vector<size_t> initial_state_set = {0};
+    for (auto s: nfa.epsilon_closure({0})) initial_state_set.push_back(s);
+    pending.emplace(std::move(initial_state_set));
     // dfa 初始状态为 1
     discovered_tab.emplace(pending.front(), 1);
     if (is_final(pending.front())) dfa.add_final_state(1);
 
     while (!pending.empty()){
-        std::vector<size_t> processing_state_set = pending.front();
-        pending.pop();
+        std::vector<size_t> &processing_state_set = pending.front();
         size_t dfa_state = discovered_tab[processing_state_set];
 
         // 收集 processing_state_set 包含的所有 NFATransition
@@ -329,9 +335,13 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
             }
         }
 
+        if (processing_nfa_transitions.empty()){
+            pending.pop();
+            continue;
+        }
+
         // 子集的边转换成 dfa 的边
         SubsetIntervalsCursor cursor = SubsetIntervalsCursor(processing_nfa_transitions);
-        auto &dfa_intervals = dfa.transition_table_[dfa_state].intervals_;
         while (cursor.more()){
             auto [start, end, target_state_set] = cursor.next();
             auto it = discovered_tab.find(target_state_set);
@@ -341,14 +351,14 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
                 if (is_final(target_state_set)) dfa.add_final_state(dfa_target);
                 pending.push(target_state_set);
                 discovered_tab.emplace(target_state_set, dfa_target);
-                dfa_intervals.push_back({start, end, dfa_target});
+                dfa.transition_table_[dfa_state].intervals_.emplace_back(DFAInterval{start, end, dfa_target});
             }
             else{
                 size_t dfa_target = it->second;
-                dfa_intervals.push_back({start, end, dfa_target});
+                dfa.transition_table_[dfa_state].intervals_.emplace_back(DFAInterval{start, end, dfa_target});
             }
         }
-
+        pending.pop();
     }
     return dfa;
 }
