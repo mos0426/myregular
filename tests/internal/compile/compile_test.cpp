@@ -14,6 +14,8 @@ TEST(CompileTest, Concatneation){
         for (auto c: a_str) nfa.consume(c);
         ASSERT_TRUE(nfa.check());
         auto dfa = nfa_to_dfa(nfa);
+        for (auto c: a_str) dfa.consume(c);
+        ASSERT_TRUE(dfa.check());
     }
 
 }

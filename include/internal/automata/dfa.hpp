@@ -25,18 +25,21 @@ public:
     void consume(uint32_t codepoint){
         current_state_ = move(current_state_, codepoint);
     };
-    
-
-    // 检查是否到达最终状态
-    bool check(){
-        for (auto final_state: final_state_set_){
-            if (current_state_ == final_state) return true;
-        }
-        return false;
-    };
 
     // 重置 DFA, current_state_ 重置回初始状态
     void reset(){current_state_ = 1;};
+
+    // 检查目前状态是否到达最终状态
+    bool check(){
+        auto it = final_state_set_.begin();
+        while (it != final_state_set_.end()){
+            if (*it < current_state_) ++it;
+            else if (*it > current_state_) return false;
+            // *it == current_state_
+            else return true;
+        }
+        return false;
+    };
 
     friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
