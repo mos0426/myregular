@@ -38,6 +38,9 @@ namespace{
                 current_ = Endpoint{current_it_->end, false};
                 ++current_it_;
             }
+            else{
+                current_ = Endpoint(current_it_->start, true);
+            }
             return {current_, target_};
         };
 
