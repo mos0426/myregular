@@ -144,8 +144,11 @@ namespace{
             for (auto p: ps){
                 if (!p->char_set.empty()) merger_.add_cursor(NFATransitionCursor(*p));  
             }
-            // 如果 merger_.more() 为 false，那么被转换的 nfa 存在死状态 (dead state)
-            assert(merger_.more());
+
+            if (!merger_.more()){
+                has_more_ = false;
+                return;
+            }
             has_more_ = true;
             auto [endpoint, target] = merger_.next();
             assert(endpoint.is_start);
