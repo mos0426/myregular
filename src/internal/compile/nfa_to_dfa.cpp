@@ -234,6 +234,7 @@ namespace{
                 auto result = subset_interval_buffer_;
                 push_interval(endpoint.codepoint);
                 refcount_.emplace_back(std::make_pair(target_state, 1));
+                current_start_ = endpoint.codepoint;
                 return result;
             }
             else{ // !endpoint.is_start
@@ -255,6 +256,7 @@ namespace{
                         // endpoint 为终点时，refcount 必然包含 target_state
                         assert(false);
                     }
+                    ++it;
                 }
                 // endpoint 为终点时，refcount 必然包含 target_state
                 assert(false);
