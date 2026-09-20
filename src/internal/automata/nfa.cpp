@@ -3,12 +3,26 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <cassert>
 
 #include "charset.hpp"
 #include "nfa.hpp"
 
 
 namespace{
+    bool is_sort_and_unique(const std::vector<size_t> &state_set){
+        if (state_set.size() < 2) return true;
+        auto it = state_set.begin(), pre_it = state_set.begin()+1;
+        while (pre_it != state_set.end()){
+            if (*it < *pre_it) {
+                ++it, ++pre_it;
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+
     inline void sort_and_unique(std::vector<size_t> &state_set){
         std::sort(state_set.begin(), state_set.end());
         auto last = std::unique(state_set.begin(), state_set.end());
@@ -21,7 +35,6 @@ std::vector<size_t> NFA::move(const std::vector<size_t> &state_set, uint32_t cod
     //根据给出的状态和输入码点，计算 NFA 的下一状态集合
     //state_set 必须为正向排列无重复元素的序列
     std::vector<size_t> result;
-        
     for (size_t state: state_set){
         const std::vector<NFATransition> &transitions = transition_table_[state];
         for (auto it = transitions.begin(); it != transitions.end(); it++){
@@ -29,28 +42,24 @@ std::vector<size_t> NFA::move(const std::vector<size_t> &state_set, uint32_t cod
         }
     }
     sort_and_unique(result);
-     
-    // epsilon_closure 的输入状态集
-    std::vector<size_t> closure(epsilon_closure(result));
+    result = epsilon_closure(result);
     
-    // 整合 result 和 closure
-    std::vector<size_t> temp;
-    std::set_union(result.begin(), result.end(), closure.begin(), closure.end(), std::back_inserter(temp));
-    result.swap(temp);
-
     return result;
 };
+
+
+
 
 
 std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) const{
     // 计算给定状态集合的 epsilon 闭包
     //state_set 必须为正向排列无重复元素的序列
-
-    std::vector<size_t> result;
-    std::vector<size_t> visited;
+    assert(is_sort_and_unique(state_set));
+    std::vector<size_t> result(state_set);
     std::vector<size_t> pending(state_set);
-
+    assert(is_sort_and_unique(state_set));
     while (true){
+        assert(is_sort_and_unique(result));
         std::vector<size_t> current_targets;
         for (size_t state: pending){
             const std::vector<NFATransition> &transitions = transition_table_[state];
@@ -60,26 +69,25 @@ std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) c
         }
 
         sort_and_unique(current_targets);
+        assert(is_sort_and_unique(result));
         std::vector<size_t> diff;
         std::set_difference(
-            current_targets.begin(), current_targets.end(), visited.begin(), visited.end(), std::back_inserter(diff)
+            current_targets.begin(), current_targets.end(), result.begin(), result.end(), std::back_inserter(diff)
         );
 
         if (diff.empty()){
-            // 结果排序去重并返回
-            sort_and_unique(result);
             return result;
         } 
         else{
-            // 更新 visited, result 和 pending
+            // 更新 result 和 pending
             std::vector<size_t> temp;
             std::set_union(
-                visited.begin(), visited.end(), diff.begin(), diff.end(), std::back_inserter(temp)
+                result.begin(), result.end(), diff.begin(), diff.end(), std::back_inserter(temp)
             );
-            visited.swap(temp);
-            for (size_t item: diff) result.push_back(item);
+            result.swap(temp);
             pending.swap(diff);
         }       
+        assert(is_sort_and_unique(result));
     }
 }
 
@@ -98,10 +106,7 @@ bool NFA::check(){
 
 
 void NFA::reset(){
-    std::vector<size_t> initial_epsilon_closure = epsilon_closure({0});
-    initial_epsilon_closure.push_back(0);
-    sort_and_unique(initial_epsilon_closure);
-    current_state_set_ = initial_epsilon_closure;
+    current_state_set_ = epsilon_closure({0});
 }
 
 

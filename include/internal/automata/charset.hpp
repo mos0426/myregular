@@ -39,6 +39,8 @@ public:
     // [CODEPOINT_MIN, 1), [3, 5), [8, CODEPOINT_MAX)
     void negation_update();
 
+    bool empty() const {return interval_set_.empty();};
+
     const std::vector<Interval> &get_intervals() const {return interval_set_;};
 
     // 禁止拷贝构造和拷贝赋值

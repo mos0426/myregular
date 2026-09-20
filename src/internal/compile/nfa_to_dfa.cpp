@@ -142,7 +142,7 @@ namespace{
         SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
             assert(!ps.empty());
             for (auto p: ps){
-                merger_.add_cursor(NFATransitionCursor(*p));
+                if (!p->char_set.empty()) merger_.add_cursor(NFATransitionCursor(*p));  
             }
             assert(merger_.more());
             has_more_ = true;
