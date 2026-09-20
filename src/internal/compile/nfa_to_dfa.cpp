@@ -144,6 +144,7 @@ namespace{
             for (auto p: ps){
                 if (!p->char_set.empty()) merger_.add_cursor(NFATransitionCursor(*p));  
             }
+            // 如果 merger_.more() 为 false，那么被转换的 nfa 存在死状态 (dead state)
             assert(merger_.more());
             has_more_ = true;
             auto [endpoint, target] = merger_.next();
@@ -316,9 +317,7 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
 
     // 待处理的队列
     std::queue<std::vector<size_t>> pending;
-    std::vector<size_t> initial_state_set = {0};
-    for (auto s: nfa.epsilon_closure({0})) initial_state_set.push_back(s);
-    pending.emplace(std::move(initial_state_set));
+    pending.emplace(nfa.epsilon_closure({0}));
     // dfa 初始状态为 1
     discovered_tab.emplace(pending.front(), 1);
     if (is_final(pending.front())) dfa.add_final_state(1);
@@ -344,6 +343,7 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
         SubsetIntervalsCursor cursor = SubsetIntervalsCursor(processing_nfa_transitions);
         while (cursor.more()){
             auto [start, end, target_state_set] = cursor.next();
+            target_state_set = nfa.epsilon_closure(target_state_set);
             auto it = discovered_tab.find(target_state_set);
             if (it == discovered_tab.end()){
                 size_t dfa_target = dfa.new_state();

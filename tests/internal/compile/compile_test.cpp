@@ -26,9 +26,15 @@ TEST(CompileTest, Plus){
     std::string_view sv = expression;
     auto ast = parse(sv);
     auto nfa = compile_to_nfa(*ast.get());
+    auto dfa = nfa_to_dfa(nfa);
     std::string a_str = "aa";
-    for (auto c: a_str) nfa.consume(c);
+
+    for (auto c: a_str){
+        nfa.consume(c);
+        // dfa.consume(c);
+    }
     ASSERT_TRUE(nfa.check());
+    // ASSERT_TRUE(dfa.check());
     nfa.reset();
     std::string a_str2 = "";
     for (auto c: a_str2) nfa.consume(c);
