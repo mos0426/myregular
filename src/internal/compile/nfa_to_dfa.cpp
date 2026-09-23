@@ -74,10 +74,14 @@ namespace{
     public:
         NFATransitionCursorMerger() = default;
 
-        void add_cursor(NFATransitionCursor &&cursor){
-            cursors_.push_back(std::move(cursor));
-            shift_up(cursors_.size()-1);
-        }
+        NFATransitionCursorMerger(std::vector<const NFATransition*> ps){
+            for (auto p: ps){
+                if (!p->char_set.empty()){
+                    cursors_.emplace_back(NFATransitionCursor(*p));
+                    shift_up(cursors_.size()-1);
+                };  
+            }
+        };
 
         std::pair<Endpoint, size_t> next(){
             assert(more());
@@ -144,9 +148,7 @@ namespace{
 
         SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
             assert(!ps.empty());
-            for (auto p: ps){
-                if (!p->char_set.empty()) merger_.add_cursor(NFATransitionCursor(*p));  
-            }
+            merger_ = NFATransitionCursorMerger(ps);
 
             if (!merger_.more()){
                 has_more_ = false;
