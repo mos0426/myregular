@@ -81,11 +81,21 @@ namespace{
                     shift_up(cursors_.size()-1);
                 };  
             }
+            if (cursors_.empty()) has_more_ = false;
+            else{
+                has_more_ = true;
+                next();
+            }
         };
 
         std::pair<Endpoint, size_t> next(){
             assert(more());
-            std::pair<Endpoint, size_t> result = cursors_[0].current();
+            std::pair<Endpoint, size_t> result = std::move(buffer_);
+            if (cursors_.empty()){
+                has_more_ = false;
+                return result;
+            }
+            buffer_ = cursors_[0].current();
             if (cursors_[0].more()){
                 cursors_[0].next();
                 shift_down(0);
@@ -98,13 +108,20 @@ namespace{
             return result;
         };
 
-        bool more(){return !cursors_.empty();}
+        std::pair<Endpoint, size_t> get_next() const {
+            return buffer_;
+        }
+
+        bool more(){return has_more_;}
 
         
     private:
         // cursors_ 为一个最小堆
         // cursors_ 的数据索引方式为完全二叉树 (Complete Binary Tree)
         std::vector<NFATransitionCursor> cursors_;
+        // 缓存 next() 的结果
+        std::pair<Endpoint, size_t> buffer_;
+        bool has_more_;
 
         void shift_down(size_t i){
             // 下沉 cursor[i], 直到 cursor[i] 大于它的所有字节点
