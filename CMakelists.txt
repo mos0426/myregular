@@ -81,14 +81,11 @@ gtest_discover_tests(utf8_test)
 gtest_discover_tests(automata_test)
 gtest_discover_tests(compile_test)
 
-
-# 如果使用 C++20 的 std::format，某些编译器需要链接额外的库（如 libstdc++fs 等），但通常不需要
-
 target_compile_options(expression PRIVATE -Wall  -pedantic)
 
 # MSVC 的警告选项
 if(MSVC)
     target_compile_options(expression PRIVATE /W4)
-    
-
+    target_compile_options(automata PRIVATE /W4)
+    target_compile_options(compile PRIVATE /W4)
 endif()
