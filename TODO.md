@@ -1,3 +1,4 @@
+- 测试修改成按照 utf-8 码点值输出
 - 补全 CharSet::unite 测试
 - 补全 nfa_to_dfa 内置函数测试
 - dfa最小化
