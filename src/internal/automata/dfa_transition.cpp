@@ -18,7 +18,7 @@ size_t DFATransition::next_state(uint32_t codepoint) const{
 
 void DFATransition::add_interval(uint32_t start, uint32_t end, size_t target_state){
     assert(start < end);
-    assert(target_state != '0');
+    assert(target_state != 0);
 
     if (intervals_.empty()){
         intervals_.push_back({start, end, target_state});

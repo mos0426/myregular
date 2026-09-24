@@ -3,7 +3,10 @@
 #include <variant>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <cstdint>
+#include <limits>
 
 
 constexpr uint32_t INFINITE_REPEAT = std::numeric_limits<uint32_t>::max();

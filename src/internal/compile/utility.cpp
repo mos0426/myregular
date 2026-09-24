@@ -23,6 +23,9 @@ bool state_set_include(const std::vector<size_t> &first, const std::vector<size_
 
 
 std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std::vector<size_t> &second){
+    if (first.empty()) return second;
+    if (second.empty()) return first;
+
     auto first_it = first.begin(), second_it = second.begin();
     std::vector<size_t> new_state_set;
     while (true){
