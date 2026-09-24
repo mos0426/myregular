@@ -136,7 +136,7 @@ namespace{
                 min_children = cursors_[l] < cursors_[r] ? l : r;
             }
             else min_children = l;
-            if (cursors_[l] < cursors_[i]){
+            if (cursors_[min_children] < cursors_[i]){
                 std::swap(cursors_[i], cursors_[min_children]);
                 return shift_down(min_children);
             }
