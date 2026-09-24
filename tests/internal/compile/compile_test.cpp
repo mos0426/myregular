@@ -31,10 +31,10 @@ TEST(CompileTest, Plus){
 
     for (auto c: a_str){
         nfa.consume(c);
-        // dfa.consume(c);
+        dfa.consume(c);
     }
     ASSERT_TRUE(nfa.check());
-    // ASSERT_TRUE(dfa.check());
+    ASSERT_TRUE(dfa.check());
     nfa.reset();
     std::string a_str2 = "";
     for (auto c: a_str2) nfa.consume(c);
@@ -47,17 +47,32 @@ TEST(CompileTest, Star){
     std::string_view sv = expression;
     auto ast = parse(sv);
     auto nfa = compile_to_nfa(*ast.get());
+    auto dfa = nfa_to_dfa(nfa);
     std::string a_str = "aa";
-    for (auto c: a_str) nfa.consume(c);
+    for (auto c: a_str){
+        nfa.consume(c);
+        dfa.consume(c);
+    }
     ASSERT_TRUE(nfa.check());
+    ASSERT_TRUE(dfa.check());
     nfa.reset();
+    dfa.reset();
     std::string a_str2 = "";
-    for (auto c: a_str2) nfa.consume(c);
+    for (auto c: a_str2){
+        nfa.consume(c);
+        dfa.consume(c);
+    }
     ASSERT_TRUE(nfa.check());
+    ASSERT_TRUE(dfa.check());
     nfa.reset();
+    dfa.reset();
     std::string a_str3 = "aab";
-    for (auto c: a_str3) nfa.consume(c);
+    for (auto c: a_str3){
+        nfa.consume(c);
+        dfa.consume(c);
+    } 
     ASSERT_FALSE(nfa.check());
+    ASSERT_FALSE(dfa.check());
 }
 
 
@@ -66,9 +81,14 @@ TEST(CompileTest, Union){
     std::string_view sv = expression;
     auto ast = parse(sv);
     auto nfa = compile_to_nfa(*ast.get());
+    auto dfa = nfa_to_dfa(nfa);
     std::string a_str = "5";
-    for (auto c: a_str) nfa.consume(c);
+    for (auto c: a_str){
+        nfa.consume(c);
+        dfa.consume(c);
+    } 
     ASSERT_TRUE(nfa.check());
+    ASSERT_TRUE(dfa.check());
 }
 
 
@@ -78,11 +98,15 @@ TEST(CompileTest, CharClass){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
         std::string a_str = "0123456789";
         for (auto c: a_str) {
             nfa.consume(c);
+            dfa.consume(c);
             ASSERT_TRUE(nfa.check());
+            ASSERT_TRUE(dfa.check());
             nfa.reset();
+            dfa.reset();
         }
     }
 
@@ -91,12 +115,19 @@ TEST(CompileTest, CharClass){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
         std::string a_str = "h";
-        for (auto c: a_str) nfa.consume(c);
+        for (auto c: a_str){
+            nfa.consume(c);
+            dfa.consume(c);
+        } 
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
         nfa.reset();
-        nfa.consume('-');
+        dfa.reset();
+        nfa.consume('-'), dfa.consume('-');
         ASSERT_FALSE(nfa.check());
+        ASSERT_FALSE(dfa.check());
     }
 
     {
@@ -104,8 +135,10 @@ TEST(CompileTest, CharClass){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
-        nfa.consume('-');
+        auto dfa = nfa_to_dfa(nfa);
+        nfa.consume('-'), dfa.consume('-');
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
     }
 
     {
@@ -113,8 +146,11 @@ TEST(CompileTest, CharClass){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
         nfa.consume('中');
+        dfa.consume('文');
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
     }
 }
 
@@ -125,15 +161,23 @@ TEST(CompileTest, Repetition){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
         std::string a_str = "123123123";
-        for (auto c: a_str) nfa.consume(c); 
+        for (auto c: a_str){
+            nfa.consume(c);
+            dfa.consume(c);
+        }  
         ASSERT_TRUE(nfa.check());
-        nfa.reset();
+        ASSERT_TRUE(dfa.check());
+        nfa.reset(), dfa.reset();
         a_str = "123123";
-        for (auto c: a_str) nfa.consume(c);
+        for (auto c: a_str){
+            nfa.consume(c);
+            dfa.consume(c);
+        } 
         ASSERT_FALSE(nfa.check());
+        ASSERT_FALSE(dfa.check());
     }
-
 
 }
 
@@ -144,25 +188,34 @@ TEST(CompileTest, Escape){
         std::string_view sv = expression;
         auto ast = parse(sv);
         auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
         std::string a_str = R"(3.1415926-a-\-d- -a-1-a-a-A-)";
         for (auto c: a_str){
             nfa.consume(c);
+            dfa.consume(c);
         }
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
 
-        nfa.reset();
+        nfa.reset(), dfa.reset();
         a_str = R"(+3.1415926-F- -G- -$-2-f-g-G-)";
         for (auto c: a_str){
             nfa.consume(c);
+            dfa.consume(c);
         }
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
 
-        nfa.reset();
+        nfa.reset(), dfa.reset();
         a_str = R"(-10086-6-.-z- -&-3-&-c-C-)";
+        int a = 1;
         for (auto c: a_str){
-            nfa.consume(c);
+            assert(true);
+            ++a;
+            nfa.consume(c), dfa.consume(c);
         }
         ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
     }
 }
 
@@ -175,16 +228,19 @@ TEST(CompileTest, Basic){
         std::string_view sv2 = expression2;
         
         auto ast = parse(sv), ast2 = parse(sv2);
-        auto nfa = compile_to_nfa(*ast.get()), nfa2 = compile_to_nfa(*ast2.get());
+        NFA nfa = compile_to_nfa(*ast.get()), nfa2 = compile_to_nfa(*ast2.get());
+        DFA dfa = nfa_to_dfa(nfa), dfa2 = nfa_to_dfa(nfa2);
         std::string a_str = "3.1415926";
         for (auto c: a_str){
             nfa.consume(c);
             nfa2.consume(c);
+            dfa.consume(c);
+            dfa2.consume(c);
         }
         ASSERT_TRUE(nfa.check());
         ASSERT_TRUE(nfa2.check());
+        ASSERT_TRUE(dfa.check());
+        ASSERT_TRUE(dfa2.check());
     }
-    
-
 }
 
