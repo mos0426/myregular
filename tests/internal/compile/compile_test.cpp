@@ -179,6 +179,29 @@ TEST(CompileTest, Repetition){
         ASSERT_FALSE(dfa.check());
     }
 
+    {
+        std::string expression = "(123){0,}";
+        std::string_view sv = expression;
+        auto ast = parse(sv);
+        auto nfa = compile_to_nfa(*ast.get());
+        auto dfa = nfa_to_dfa(nfa);
+        std::string a_str = "123123123";
+        for (auto c: a_str){
+            nfa.consume(c);
+            dfa.consume(c);
+        }  
+        ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
+        nfa.reset(), dfa.reset();
+        a_str = "123123";
+        for (auto c: a_str){
+            nfa.consume(c);
+            dfa.consume(c);
+        } 
+        ASSERT_TRUE(nfa.check());
+        ASSERT_TRUE(dfa.check());
+    }
+
 }
 
 
