@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#include <cassert>
 
 #include "charset.hpp"
 
@@ -121,6 +122,7 @@ void CharSet::unite_update(uint32_t start, uint32_t end){
     // 增加一个码点区间
     // 针对连续正序添加区间的情况优化的接口，如 [[1, 3], [5, 8], [10, 20]....] 之类的
 
+    assert(start < end);
     if (interval_set_.empty()){
         interval_set_.push_back({start, end});
         return;

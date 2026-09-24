@@ -124,7 +124,7 @@ namespace{
         bool has_more_;
 
         void shift_down(size_t i){
-            // 下沉 cursor[i], 直到 cursor[i] 大于它的所有字节点
+            // 下沉 cursor[i], 直到 cursor[i] 大于它的所有子节点
 
             if ((cursors_.size() - 1) <= (i*2)) return ;
             // 左子节点和右子节点的索引
@@ -144,13 +144,13 @@ namespace{
         };
 
         void shift_up(size_t i){
-            // 上浮 cursor[i]， 直到 cursor[i] 小于它的父节点
+            // 上浮 cursor[i]， 直到 cursor[i] 大于它的父节点
 
             if (i == 0) return ;
             // 父节点索引
             size_t p = (i - 1) / 2;
             
-            if (cursors_[p] < cursors_[i]){
+            if (cursors_[i] < cursors_[p]){
                 std::swap(cursors_[i], cursors_[p]);
                 return shift_up(p);
             }
@@ -215,7 +215,7 @@ namespace{
                             if (it->second == 0){
                                 refcount_.erase(it);
                                 // 判断是否走到尽头
-                                if (refcount_.empty() & !merger_.more()){
+                                if (refcount_.empty() && !merger_.more()){
                                     has_more_ = false;
                                     return subset_interval_buffer_;
                                 }
@@ -267,7 +267,7 @@ namespace{
                                 auto result = subset_interval_buffer_;
                                 push_interval(endpoint.codepoint);
                                 refcount_.erase(it);
-                                if (!refcount_.empty()) current_start_ = endpoint.codepoint;
+                                current_start_ = endpoint.codepoint;
                                 return result;
                             }
                             return next();
@@ -301,6 +301,7 @@ namespace{
             for (auto i: refcount_){
                 target_state_set.push_back(i.first);
             }
+            assert(current_start_ < end);  
             subset_interval_buffer_ = {current_start_, end, target_state_set};
             return ;
         }
