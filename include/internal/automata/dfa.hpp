@@ -16,7 +16,7 @@ public:
     ~DFA() = default;
 
     //根据给出的状态集合和输入码点，计算 DFA 的下一状态
-    size_t move(size_t state, uint32_t codepoint){
+    size_t move(size_t state, uint32_t codepoint) const {
         const DFATransition &dfa_transition = transition_table_[state];
         return dfa_transition.next_state(codepoint);
     };
@@ -30,7 +30,7 @@ public:
     void reset(){current_state_ = 1;};
 
     // 检查目前状态是否到达最终状态
-    bool check(){
+    bool check() const {
         auto it = final_state_set_.begin();
         while (it != final_state_set_.end()){
             if (*it < current_state_) ++it;

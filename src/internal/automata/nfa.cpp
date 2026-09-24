@@ -89,7 +89,7 @@ std::vector<size_t> NFA::epsilon_closure(const std::vector<size_t> &state_set) c
 }
 
 
-bool NFA::check(){
+bool NFA::check()const {
     auto c_it = current_state_set_.begin(), f_it = final_state_set_.begin();
 
     while ((c_it != current_state_set_.end()) && (f_it != final_state_set_.end())){

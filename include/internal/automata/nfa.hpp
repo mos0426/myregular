@@ -41,7 +41,7 @@ public:
     };
 
     // 检查是否已经到达最终状态
-    bool check();
+    bool check() const;
 
     // 重置 nfa, current_state_set_ 重置回初始状态
     void reset();
@@ -70,7 +70,7 @@ public:
 
     void set_final_state_set(std::vector<size_t> final_state_set);
 
-    std::vector<size_t> get_current_state_set() {return current_state_set_;};
+    std::vector<size_t> get_current_state_set() const {return current_state_set_;};
 
     friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
