@@ -131,11 +131,13 @@ namespace{
             size_t l = i*2 + 1;
             // 最小子节点的索引
             size_t min_children;
-            if ((cursors_.size() - 1) < (i*2+1)){
+            if ((cursors_.size() - 1) <= (i*2+1)){
+                min_children = l;
+            }
+            else {
                 size_t r = i*2 + 2;
                 min_children = cursors_[l] < cursors_[r] ? l : r;
             }
-            else min_children = l;
             if (cursors_[min_children] < cursors_[i]){
                 std::swap(cursors_[i], cursors_[min_children]);
                 return shift_down(min_children);
