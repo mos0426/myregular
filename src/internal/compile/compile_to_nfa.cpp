@@ -89,6 +89,9 @@ namespace{
         size_t output_state = nfa.new_state();
 
         // 处理重复次数下限 min
+        if (node.min > MAX_REPETITION){
+            throw std::runtime_error("匹配重复次数不能超过 MAX_REPETITION:"+std::to_string(MAX_REPETITION));
+        }
         if (node.min == 0) {
             nfa.add_epsilon_transition(input_state, output_state);
         }
@@ -99,14 +102,12 @@ namespace{
             }
         }
 
-
         // 处理重复次数上限 max
         if (node.max == INFINITE_REPEAT){
             repetition_item_output = compile_(*node.left.get(), nfa, repetition_item_input);
             nfa.add_epsilon_transition(repetition_item_output, repetition_item_input);
         }
         else {
-            if (node.max > MAX_REPETITION) throw std::runtime_error("匹配重复次数不能超过 MAX_REPETITION:"+std::to_string(MAX_REPETITION));
             for (auto i = node.min; i < node.max; i++){
                 repetition_item_input =repetition_item_output;
                 repetition_item_output = compile_(*node.left.get(), nfa, repetition_item_input);
