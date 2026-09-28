@@ -47,8 +47,8 @@ static std::unique_ptr<AST> _parse_expression(Lexer &lexer, std::unique_ptr<AST>
         return _parse_expression(lexer, std::make_unique<AST>(UnionNode{std::move(left), std::move(right)}));
     }
     else if (
-        std::holds_alternative<Strcutural>(token.type) &&
-        (std::get<Strcutural>(token.type) == Strcutural::RPARENT || std::get<Strcutural>(token.type) == Strcutural::END)
+        std::holds_alternative<Structural>(token.type) &&
+        (std::get<Structural>(token.type) == Structural::RPARENT || std::get<Structural>(token.type) == Structural::END)
     )
     {
         // 遇到 ')' 或 'END'，返回左操作数，交给上层处理
@@ -75,7 +75,7 @@ static std::unique_ptr<AST> _parse_concatenation(Lexer &lexer, std::unique_ptr<A
 
     Token token = lexer.get_current_token();
     std::unique_ptr<AST> right = nullptr;
-    if (std::holds_alternative<Strcutural>(token.type) && (std::get<Strcutural>(token.type) == Strcutural::RPARENT || std::get<Strcutural>(token.type) == Strcutural::END)){
+    if (std::holds_alternative<Structural>(token.type) && (std::get<Structural>(token.type) == Structural::RPARENT || std::get<Structural>(token.type) == Structural::END)){
         // 遇到 ')' 或者 END，返回左操作数，交给上层处理
         return left;
     }
@@ -117,8 +117,8 @@ static std::unique_ptr<AST> parse_factor(Lexer &lexer){
     }
 
     // 处理重复操作符 {m,n}
-    if (auto *lbrace = std::get_if<Strcutural>(&token.type)){
-        if (*lbrace == Strcutural::LBRACE){
+    if (auto *lbrace = std::get_if<Structural>(&token.type)){
+        if (*lbrace == Structural::LBRACE){
             return parse_repetition(lexer, std::move(atom));
         }
     }
@@ -142,7 +142,7 @@ static std::unique_ptr<AST> parse_atom(Lexer &lexer){
             lexer.next_token(); // 消耗 '('
             std::unique_ptr<AST> expr = parse_expression(lexer);
             token = lexer.get_current_token();
-            if ( !std::holds_alternative<Strcutural>(token.type) || std::get<Strcutural>(token.type) != Strcutural::RPARENT){
+            if ( !std::holds_alternative<Structural>(token.type) || std::get<Structural>(token.type) != Structural::RPARENT){
                 throw ParserError("缺少 ')'", lexer.get_expression(), lexer.get_pos());
             }
             lexer.next_token(); // 消耗 ')'
@@ -185,7 +185,7 @@ static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> 
     if (token.value == ','){
         lexer.next_token(); // 消耗 ','
         token = lexer.get_current_token();
-        if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::RBRACE){
+        if (std::holds_alternative<Structural>(token.type) && std::get<Structural>(token.type) == Structural::RBRACE){
             max = INFINITE_REPEAT; // "{n, }" 的情况，max 表述为无穷大
         }
         else max = parse_number(lexer);
@@ -196,7 +196,7 @@ static std::unique_ptr<AST> parse_repetition(Lexer &lexer, std::unique_ptr<AST> 
 
     // 检查是否有 '}'
     token = lexer.get_current_token();
-    if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::RBRACE){
+    if (std::holds_alternative<Structural>(token.type) && std::get<Structural>(token.type) == Structural::RBRACE){
         lexer.next_token(); // 消耗 '}'
     }
     else{
@@ -343,7 +343,7 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
                 lexer.next_token(); // 消耗 ']'
                 return ranges;
             }
-            else if (std::holds_alternative<Strcutural>(end_token.type) && std::get<Strcutural>(end_token.type) == Strcutural::END){
+            else if (std::holds_alternative<Structural>(end_token.type) && std::get<Structural>(end_token.type) == Structural::END){
                 // 如果 '-' 后面紧跟 'End'，则抛出异常，表示无效的字符范围
                 throw ParserError("无效的字符范围", lexer.get_expression(), lexer.get_pos());
             }
@@ -358,7 +358,7 @@ static inline std::vector<CharRange> parse_char_class_content(Lexer &lexer){
             // 遇到 ']'，结束字符类的解析
             return ranges;
         }
-        else if (std::holds_alternative<Strcutural>(token.type) && std::get<Strcutural>(token.type) == Strcutural::END){
+        else if (std::holds_alternative<Structural>(token.type) && std::get<Structural>(token.type) == Structural::END){
             // 遇到 'End'，抛出异常，表示字符类没有正确闭合
             throw ParserError("字符类没有正确闭合", lexer.get_expression(), lexer.get_pos());
         }

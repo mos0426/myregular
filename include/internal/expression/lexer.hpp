@@ -41,7 +41,7 @@ enum class Escape: uint8_t{
 
 
 // 结构控制符，用于 parse 的流向控制
-enum class Strcutural: uint8_t{
+enum class Structural: uint8_t{
     RPARENT = 0,    // )
     RBRAKET = 1,    // ]
     LBRACE = 2,     // {
@@ -55,7 +55,7 @@ using TokenType = std::variant<
     PostfixOperator,
     InfixOperator,
     Escape,
-    Strcutural
+    Structural
 >;
 
 

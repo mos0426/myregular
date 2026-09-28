@@ -26,7 +26,7 @@ void Lexer::next_token(){
     }
     else
     {
-        current_token_ = Token{Strcutural::END, 0};
+        current_token_ = Token{Structural::END, 0};
     }
 };
 
@@ -38,11 +38,11 @@ void Lexer::build_token(){
     case '+': current_token_ = Token{PostfixOperator::PLUS, '+'}; current_++; break;
     case '?': current_token_ = Token{PostfixOperator::QUEST, '?'}; current_++; break;
     case '(': current_token_ = Token{Atom::LPARENT, '('}; current_++; break;
-    case ')': current_token_ = Token{Strcutural::RPARENT, ')'}; current_++; break;
+    case ')': current_token_ = Token{Structural::RPARENT, ')'}; current_++; break;
     case '[': current_token_ = Token{Atom::LBRAKET, '['}; current_++; break;
-    case ']': current_token_ = Token{Strcutural::RBRAKET, ']'}; current_++; break;
-    case '{': current_token_ = Token{Strcutural::LBRACE, '{'}; current_++; break;
-    case '}': current_token_ = Token{Strcutural::RBRACE, '}'}; current_++; break;
+    case ']': current_token_ = Token{Structural::RBRAKET, ']'}; current_++; break;
+    case '{': current_token_ = Token{Structural::LBRACE, '{'}; current_++; break;
+    case '}': current_token_ = Token{Structural::RBRACE, '}'}; current_++; break;
     case '|': current_token_ = Token{InfixOperator::PIPE, '|'}; current_++; break;
     case '.': current_token_ = Token{Atom::DOT, '.'}; current_++; break;
     case '\\': build_escape_token(); break;
