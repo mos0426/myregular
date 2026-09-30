@@ -21,6 +21,7 @@ target_include_directories(utility PUBLIC include/internal/utility)
 #Lib interval
 add_library(interval STATIC
     src/internal/interval/interval.cpp
+    src/internal/interval/interval_cursor.cpp
 )
 target_include_directories(interval PUBLIC include/internal/interval)
 
@@ -68,6 +69,9 @@ target_link_libraries(automata_test PRIVATE automata GTest::gtest_main)
 add_executable(compile_test tests/internal/compile/compile_test.cpp)
 target_link_libraries(compile_test PRIVATE compile GTest::gtest_main)
 
+add_executable(interval_test tests/internal/interval/interval_cursor_test.cpp)
+target_link_libraries(interval_test PRIVATE interval GTest::gtest_main)
+
 
 # 设置第三方库依赖
 include(FetchContent)
@@ -85,6 +89,7 @@ gtest_discover_tests(expression_test)
 gtest_discover_tests(utf8_test)
 gtest_discover_tests(automata_test)
 gtest_discover_tests(compile_test)
+gtest_discover_tests(interval_test)
 
 target_compile_options(expression PRIVATE -Wall  -pedantic)
 
