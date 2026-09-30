@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 
 // CODEPOINT_MIN 和 CODEPOINT_MAX 分别别是 UTF-8 编码字符的无穷小和无穷大
