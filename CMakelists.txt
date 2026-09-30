@@ -7,9 +7,8 @@ project(MyRegular)
 # 设置 C++ 标准
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 如果使用 C++20 的 std::format，可改为 20
-# set(CMAKE_CXX_STANDARD 20)
 
 # 设置可执行文件的输出目录（可选）
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -18,6 +17,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #Lib utility
 add_library(utility STATIC src/internal/utility/utf8.cpp)
 target_include_directories(utility PUBLIC include/internal/utility)
+
+#Lib interval
+add_library(interval STATIC
+    src/internal/interval/interval.cpp
+)
+target_include_directories(interval PUBLIC include/internal/interval)
 
 # Lib expression
 add_library(expression STATIC 
