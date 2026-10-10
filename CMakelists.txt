@@ -22,6 +22,7 @@ target_include_directories(utility PUBLIC include/internal/utility)
 add_library(interval STATIC
     src/internal/interval/interval.cpp
     src/internal/interval/interval_cursor.cpp
+    src/internal/interval/interval_cursor_merger.cpp
 )
 target_include_directories(interval PUBLIC include/internal/interval)
 
@@ -69,7 +70,10 @@ target_link_libraries(automata_test PRIVATE automata GTest::gtest_main)
 add_executable(compile_test tests/internal/compile/compile_test.cpp)
 target_link_libraries(compile_test PRIVATE compile GTest::gtest_main)
 
-add_executable(interval_test tests/internal/interval/interval_cursor_test.cpp)
+add_executable(interval_test
+    tests/internal/interval/interval_cursor_test.cpp
+    tests/internal/interval/interval_cursor_merger_test.cpp
+    )
 target_link_libraries(interval_test PRIVATE interval GTest::gtest_main)
 
 
