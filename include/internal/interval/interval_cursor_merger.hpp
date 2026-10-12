@@ -7,7 +7,7 @@ class IntervalCursorMerger{
 public:
     IntervalCursorMerger() = delete;
 
-    IntervalCursorMerger(std::vector<IntervalCursor> &cursors);
+    IntervalCursorMerger(const std::vector<IntervalCursor> &cursors);
     
     // 返回下一个端点和标签；
     // 确保 more() 为 true 才可执行 next()

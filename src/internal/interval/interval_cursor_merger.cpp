@@ -4,7 +4,7 @@
 #include "interval_cursor_merger.hpp"
 
 
-IntervalCursorMerger::IntervalCursorMerger(std::vector<IntervalCursor> &cursors){
+IntervalCursorMerger::IntervalCursorMerger(const std::vector<IntervalCursor> &cursors){
     for (auto cursor: cursors){
         cursors_.push_back(cursor);
         shift_up(cursors_.size()-1);
