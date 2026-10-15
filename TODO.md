@@ -1,4 +1,5 @@
 - 集成及开发 interval 相关代数算法
+    - 重构 CharSet
     - Interval 相关代数应用接口
         - 旧版 interval.hpp 相关代码迁移到新版 interval.hpp 上
         - nfa_to_dfa 关于 interval 算法迁移至使用新接口
