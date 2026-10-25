@@ -13,4 +13,5 @@ NFA compile_to_nfa(const AST &ast);
 DFA nfa_to_dfa(const NFA &nfa, bool minimize=true);
 
 // 将 dfa 进行最下化， 最小化后的 dfa 在状态数和边数上都会达到最小
+// 基于 Hopcroft's algorithm
 void dfa_minimization(DFA &dfa);

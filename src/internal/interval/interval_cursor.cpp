@@ -1,12 +1,11 @@
 #include <cassert>
-#include <memory>
 
 
 #include "interval_cursor.hpp"
 
 
 IntervalCursor::IntervalCursor(const IntervalSet &intervalset, size_t label):
-    intervalset_ptr_(std::make_shared<const IntervalSet>(intervalset)), current_it_(intervalset_ptr_->begin()), label_(label){
+    intervalset_(&intervalset), current_it_(intervalset_->begin()), label_(label){
         current_ = Endpoint{current_it_->start, true};
     }
 
