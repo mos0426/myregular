@@ -3,7 +3,6 @@
 #include <cassert>
 #include <algorithm>
 
-
 #include "dfa_transition.hpp"
 
 size_t DFATransition::next_state(uint32_t codepoint) const{
@@ -25,45 +24,45 @@ void DFATransition::add_interval(uint32_t start, uint32_t end, size_t target_sta
         return;
     }
 
-    auto revese_it = intervals_.rbegin();
+    auto reverse_it = intervals_.rbegin();
     while (true){
-        if (revese_it == intervals_.rend()){
+        if (reverse_it == intervals_.rend()){
             intervals_.insert(intervals_.begin(), {start, end, target_state});
             return;
         }
 
         // 两个码点区间在不同目标状态的情况允许终点和起点重叠
-        if (revese_it->end <= start){
-            if (revese_it->end == start && revese_it->target_state == target_state){
+        if (reverse_it->end <= start){
+            if (reverse_it->end == start && reverse_it->target_state == target_state){
                 // 两个码点区间在不同目标状态的情况允许终点和起点重叠
-                revese_it->end = end;
+                reverse_it->end = end;
                 return;
             }
-            intervals_.insert(revese_it.base(), {start, end, target_state});
+            intervals_.insert(reverse_it.base(), {start, end, target_state});
             return;
         }
         
-        if (revese_it->start < end){
+        if (reverse_it->start < end){
             // 处理区间重叠的情况, 将重叠的区间合并为一个区间，并将目标状态设置为相同的目标状态
             DFAInterval merged_interval;
-            merged_interval.end = std::max(revese_it->end, end);
+            merged_interval.end = std::max(reverse_it->end, end);
             merged_interval.target_state = target_state;
             // 记录重叠的区间个数
             int counter = 1; 
-            ++revese_it;
+            ++reverse_it;
             while (true){
-                if (revese_it == intervals_.rend()) break;
-                if (revese_it->start >= end) break;
+                if (reverse_it == intervals_.rend()) break;
+                if (reverse_it->start >= end) break;
                 ++counter;
-                ++revese_it;
+                ++reverse_it;
             }
-            --revese_it;
-            merged_interval.start = std::min(revese_it->start, start);
-            intervals_.erase(revese_it.base() - 1, revese_it.base() - 1 + counter);
+            --reverse_it;
+            merged_interval.start = std::min(reverse_it->start, start);
+            intervals_.erase(reverse_it.base() - 1, reverse_it.base() - 1 + counter);
             intervals_.push_back(merged_interval);
             return ;
         }
-        ++revese_it;
+        ++reverse_it;
     }
 }
 
