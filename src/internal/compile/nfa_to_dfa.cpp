@@ -9,165 +9,27 @@
 
 #include "compile.hpp"
 #include "interval.hpp"
+#include "interval_cursor.hpp"
+#include "cursor_merger.hpp"
 #include "charset.hpp"
 #include "utility.hpp"
 #include "dfa.hpp"
 #include "nfa.hpp"
 
 namespace{
-
-    struct Endpoint{
-        uint32_t codepoint;
-        bool is_start;
-    };
-
-    class NFATransitionCursor{
-        // 管理 NFATransition 内码点区间上的端点，按正序输出端点流
-    public:
-        NFATransitionCursor() = delete;
-
-        NFATransitionCursor(const NFATransition &t): intervals_(&t.char_set.get_intervals()){
-            current_it_ = intervals_->begin();
-            target_ = t.target_state;
-            current_ = Endpoint{current_it_->start, true};
-        };
-
-        std::pair<Endpoint, size_t> next(){
-            assert(more());
-            if (current_.is_start){
-                current_ = Endpoint{current_it_->end, false};
-                ++current_it_;
-            }
-            else{
-                current_ = Endpoint(current_it_->start, true);
-            }
-            return {current_, target_};
-        };
-
-        std::pair<Endpoint, size_t> current() const { return {current_, target_};};
-
-        bool more() const {return current_it_ != intervals_->end();};
-
-        friend bool operator<(const NFATransitionCursor &left, const NFATransitionCursor &right);
-    
-    private:
-        const std::vector<Interval> *intervals_;
-        std::vector<Interval>::const_iterator current_it_;
-        size_t target_;
-        Endpoint current_;
-    };
-
-
-    bool operator<(const NFATransitionCursor &left, const NFATransitionCursor &right){
-        if (left.current_.codepoint < right.current_.codepoint) return true;
-        else if (left.current_.codepoint == right.current_.codepoint){
-            // 码点值相同时， 终点比起点更大
-            return !left.current_.is_start && right.current_.is_start;
-        }
-        return false;
-    }
-
-
-    class NFATransitionCursorMerger{
-    // NFATransitionCursor 归并器，把多个 NFATransitionCursor 统一管理，将多个 NFATransitionCursor 的端点流
-    // 按码点正序归并输出。
-    public:
-        NFATransitionCursorMerger() = default;
-
-        NFATransitionCursorMerger(std::vector<const NFATransition*> ps){
-            for (auto p: ps){
-                if (!p->char_set.empty()){
-                    cursors_.emplace_back(NFATransitionCursor(*p));
-                    shift_up(cursors_.size()-1);
-                };  
-            }
-            if (cursors_.empty()) has_more_ = false;
-            else{
-                has_more_ = true;
-                next();
-            }
-        };
-
-        std::pair<Endpoint, size_t> next(){
-            assert(more());
-            std::pair<Endpoint, size_t> result = std::move(buffer_);
-            if (cursors_.empty()){
-                has_more_ = false;
-                return result;
-            }
-            buffer_ = cursors_[0].current();
-            if (cursors_[0].more()){
-                cursors_[0].next();
-                shift_down(0);
-            }
-            else{
-                cursors_[0] = std::move(cursors_.back());
-                cursors_.pop_back();
-                if (!cursors_.empty()) shift_down(0);
-            }
-            return result;
-        };
-
-        std::pair<Endpoint, size_t> get_next() const {
-            return buffer_;
-        }
-
-        bool more(){return has_more_;}
-
-        
-    private:
-        // cursors_ 为一个最小堆
-        // cursors_ 的数据索引方式为完全二叉树 (Complete Binary Tree)
-        std::vector<NFATransitionCursor> cursors_;
-        // 缓存 next() 的结果
-        std::pair<Endpoint, size_t> buffer_;
-        bool has_more_;
-
-        void shift_down(size_t i){
-            // 下沉 cursor[i], 直到 cursor[i] 大于它的所有子节点
-
-            if ((cursors_.size() - 1) <= (i*2)) return ;
-            // 左子节点和右子节点的索引
-            size_t l = i*2 + 1;
-            // 最小子节点的索引
-            size_t min_children;
-            if ((cursors_.size() - 1) <= (i*2+1)){
-                min_children = l;
-            }
-            else {
-                size_t r = i*2 + 2;
-                min_children = cursors_[l] < cursors_[r] ? l : r;
-            }
-            if (cursors_[min_children] < cursors_[i]){
-                std::swap(cursors_[i], cursors_[min_children]);
-                return shift_down(min_children);
-            }
-            return ;
-        };
-
-        void shift_up(size_t i){
-            // 上浮 cursor[i]， 直到 cursor[i] 大于它的父节点
-
-            if (i == 0) return ;
-            // 父节点索引
-            size_t p = (i - 1) / 2;
-            
-            if (cursors_[i] < cursors_[p]){
-                std::swap(cursors_[i], cursors_[p]);
-                return shift_up(p);
-            }
-            return ;
-        }
-    };
-
-
     class SubsetIntervalsCursor{
     public:
         SubsetIntervalsCursor() = delete;
 
         SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
             assert(!ps.empty());
-            merger_ = NFATransitionCursorMerger(ps);
+
+            std::vector<IntervalCursor> cursors;
+            for (auto p: ps) {
+                if (!p->char_set.empty()) cursors.emplace_back(IntervalCursor(p->char_set.get_intervals(), p->target_state));
+            }
+
+            merger_ = IntervalCursorMerger(cursors);
 
             if (!merger_.more()){
                 has_more_ = false;
@@ -288,7 +150,7 @@ namespace{
         bool more(){return has_more_;};
 
     private:
-        NFATransitionCursorMerger merger_;
+        IntervalCursorMerger merger_;
         // 目前处理区间的起点
         uint32_t current_start_;
         // 用于记录目前处理区间的 target state 和每个 target state 出现的次数
