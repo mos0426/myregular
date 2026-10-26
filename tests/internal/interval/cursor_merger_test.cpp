@@ -14,8 +14,8 @@ TEST(IntervalCursorMergerTest, base_test){
     IntervalSet is2 = {{2, 3}, {4, 7}, {8, 10}};
     IntervalSet is3 = {{2, 5}, {6, 9}};
     
-    std::vector<IntervalCursor> cursors = {IntervalCursor(is1, 1)};
-    cursors.emplace_back(IntervalCursor(is2, 2));
+    std::vector<IntervalCursor> cursors = {IntervalCursor(is2, 2)};
+    cursors.emplace_back(IntervalCursor(is1, 1));
     cursors.emplace_back(IntervalCursor(is3, 3));
 
     IntervalCursorMerger merger(cursors);

@@ -13,7 +13,7 @@ using DFAIntervalCursorMerger = CursorMerger<DFAIntervalCursor>;
 template<typename T>
 class CursorMerger{
 public:
-    CursorMerger() = delete;
+    CursorMerger() = default;
 
     CursorMerger(const std::vector<T> &cursors){
         for (auto cursor: cursors){
