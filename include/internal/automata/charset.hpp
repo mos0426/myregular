@@ -52,6 +52,6 @@ public:
     CharSet& operator=(CharSet&&) noexcept = default;
 
 private:
-    std::vector<Interval> interval_set_; 
+    IntervalSet interval_set_; 
 };
 

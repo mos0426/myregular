@@ -1,5 +1,4 @@
 - 集成及开发 interval 相关代数算法
-    - 重构 CharSet
     - Interval 相关代数应用接口
 - 测试修改成按照 utf-8 码点值输出
 - 补全 CharSet::unite 测试

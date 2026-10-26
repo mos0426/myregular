@@ -4,6 +4,8 @@
 #include <cassert>
 
 #include "charset.hpp"
+#include "interval.hpp"
+#include "interval_set_union.hpp"
 
 
 
@@ -24,97 +26,10 @@ bool CharSet::contains(uint32_t codepoint) const {
 
 
 CharSet CharSet::unite(const CharSet &other) const {
-    CharSet result;
-    std::vector<Interval>::const_iterator it1 = interval_set_.begin();
-    std::vector<Interval>::const_iterator it2 = other.interval_set_.begin();
-    
-    while (true){
-        if (it1 == interval_set_.end()){
-            for (; it2 != other.interval_set_.end(); ++it2) {
-                result.interval_set_.push_back(*it2);
-            }
-            break;
-        }
-        if (it2 == other.interval_set_.end()){
-            for (; it1 != interval_set_.end(); ++it1){
-                result.interval_set_.push_back(*it1);
-            }
-            break;
-        }
-
-        // 两个区间不相交的情况
-        if (it1->end < it2->start){
-            result.interval_set_.push_back(*it1);
-            ++it1;
-            continue;
-        }
-        if (it2->end < it1->start){
-            result.interval_set_.push_back(*it2);
-            ++it2;
-            continue;
-        }
-
-        // 两个区间相交的情况
-        // 合并区间
-        Interval merged_interval;
-        merged_interval.start = std::min(it1->start, it2->start);
-        std::vector<Interval>::const_iterator *compared_it_p;
-        std::vector<Interval>::const_iterator compared_end;
-        std::vector<Interval>::const_iterator *another_it_p;
-        std::vector<Interval>::const_iterator another_end;
-        if (it1->end > it2->end){
-            merged_interval.end = it1->end;
-            ++it1;
-            compared_it_p = &it2;
-            compared_end = other.interval_set_.end();
-            another_it_p = &it1;
-            another_end = interval_set_.end();
-        }
-        else if (it1->end < it2->end){
-            merged_interval.end = it2->end;
-            ++it2;
-            compared_it_p = &it1;
-            compared_end = interval_set_.end();
-            another_it_p = &it2;
-            another_end = other.interval_set_.end();
-        }
-        else{
-            merged_interval.end = it1->end;
-            ++it1;
-            ++it2;
-            result.interval_set_.push_back(merged_interval);
-            continue;
-        }
-
-
-        // 同时被包含多个区间的情况
-        while (true){
-            while ((*compared_it_p)->end <= merged_interval.end){
-                ++(*compared_it_p);
-                if (*compared_it_p == compared_end) break;
-            }
-
-            if (*compared_it_p == compared_end){
-                result.interval_set_.push_back(merged_interval);
-                break;
-            }
-
-            if ((*compared_it_p)->start <= merged_interval.end){
-                merged_interval.end = (*compared_it_p)->end;
-                 ++(*compared_it_p);
-                if (*another_it_p != another_end && (*another_it_p)->start <= merged_interval.end){
-                    std::swap(compared_it_p, another_it_p);
-                    std::swap(compared_end, another_end);
-                    continue;
-                }
-            }
-            
-            result.interval_set_.push_back(merged_interval);
-            break;
-        }
-
-    }
-    return result;
+    IntervalSet new_interval_set = interval_set_union(interval_set_, other.get_intervals());
+    CharSet ans = CharSet();
+    ans.interval_set_ = new_interval_set;
+    return ans;
 }
 
 
