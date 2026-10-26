@@ -25,9 +25,35 @@ struct Endpoint{
 };
 
 
+struct DFAInterval{
+    // 在确定性（DFA）有限自动机中，对于同一状态下的不同输入字符，如果它们跳转到的下一个状态相同，
+    // 则这些字符可以被合并为一个连续的区间。本结构体即用于记录这一映射关系。
+    // 区间为左闭右开
+    uint32_t start;
+    uint32_t end;
+    size_t target_state;
+};
+
+
+struct SubsetInterval{
+    // 在子集构造法中，DFA 的一个状态对应 NFA 的一个状态集合。对于同一状态集合下的不同输入字符，如果它们跳转到的下一个状态集合相同，
+    // 则这些字符可以被合并为一个连续的区间。本结构体即用于记录这一映射关系。
+    // 区间为左闭右开
+    uint32_t start;
+    uint32_t end;
+    std::vector<size_t> target_state_set;
+};
+
+
 // 码点区间集，具体表现可视作在数轴上码点区间的正序排列；
 // 码点区间集内不会存在有两个或多个区间重合的情况 (包括相交，包含，首尾相接)
 using IntervalSet = std::vector<Interval>;
+
+
+// DFA 码点区间集，具体表现可视作数轴上码点区间的正序排列;
+// 每个区间带有一个目标状态, 可以视为一个 DFA 上某个指定状态出发的所有转移边的聚合;
+// 区间集内不会存在相交的区间，可能回出现首尾相接的情况；
+using DFAIntervalSet = std::vector<DFAInterval>;
 
 
 // 检查 interval set 的合法性

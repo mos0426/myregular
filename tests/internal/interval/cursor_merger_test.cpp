@@ -3,9 +3,10 @@
 
 #include <gtest/gtest.h>
 
-#include "interval_cursor_merger.hpp"
+#include "cursor_merger.hpp"
 #include "interval_cursor.hpp"
 #include "interval.hpp"
+
 
 
 TEST(IntervalCursorMergerTest, base_test){

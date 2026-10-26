@@ -1,6 +1,5 @@
 
 
-
 #include "interval.hpp"
 
 bool check_intervalset(const IntervalSet &intervalset){
