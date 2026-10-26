@@ -73,7 +73,6 @@ private:
 
         if (cursors_[i] < cursors_[p]){
             std::swap(cursors_[i], cursors_[p]);
-            cursors_[i] = cursors_[p];
             return shift_up(p);
         }
         return;
