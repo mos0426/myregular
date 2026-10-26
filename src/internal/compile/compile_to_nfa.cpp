@@ -96,7 +96,7 @@ namespace{
             nfa.add_epsilon_transition(input_state, output_state);
         }
         else{
-            for (auto i = 0; i < node.min; i++){
+            for (unsigned int i = 0; i < node.min; i++){
                 repetition_item_input = repetition_item_output;
                 repetition_item_output = compile_(*node.left.get(), nfa, repetition_item_input);
             }
