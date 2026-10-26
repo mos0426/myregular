@@ -1,5 +1,6 @@
-- 集成及开发 interval 相关代数算法
-    - Interval 相关代数应用接口
+- dfa 最小化
+    - 构建反向转移表
+    - 划分等价状态集
 - 测试修改成按照 utf-8 码点值输出
 - dfa最小化
 - RepetitionNode 编译及相对的 NFA, DFA机制的优化
