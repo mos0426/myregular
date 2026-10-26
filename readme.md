@@ -18,7 +18,7 @@
 | `expression` | 已完成 | 词法分析、语法分析、AST、错误报告 |
 | `automata` | 基本完成 | `CharSet`、`NFA`、`DFA`、`DFATransition` |
 | `compile` | 基本完成 | AST→NFA（Thompson）、NFA→DFA（子集构造） |
-| `interval` | 进行中 | 区间游标与归并器，准备替换编译路径中的区间代数实现 |
+| `interval` | 已完成 | 区间游标与归并器，准备替换编译路径中的区间代数实现 |
 | DFA 最小化 | 未完成 | 头文件已声明 `dfa_minimization`，实现待补 |
 | `{n,m}` 优化 | 规划中 | 当前为展开式构造，后续考虑子自动机 / 计数边等方案 |
 
@@ -108,10 +108,15 @@ bool ok = dfa.check();  // true
 
 ## 下一步（摘自 `TODO.md`）
 
-- 完善 `interval` 代数接口，并将 `nfa_to_dfa` 迁移到新接口
-- 补全 `CharSet::unite`、`nfa_to_dfa` 等相关测试；测试输出改为按 UTF-8 码点值展示
-- 实现 DFA 最小化
-- 优化 `RepetitionNode` 的编译与 NFA/DFA 机制（子自动机 / 计数边等）
+- dfa 最小化
+    - 构建反向转移表
+    - 划分等价状态集
+- 测试修改成按照 utf-8 码点值输出
+- dfa最小化
+- RepetitionNode 编译及相对的 NFA, DFA机制的优化
+    - 子自动机的方案
+    - 计数边的方案
+
 
 ## 许可证
 
