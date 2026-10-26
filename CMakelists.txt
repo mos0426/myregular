@@ -23,6 +23,7 @@ add_library(interval STATIC
     src/internal/interval/interval.cpp
     src/internal/interval/interval_cursor.cpp
     src/internal/interval/dfa_interval_cursor.cpp
+    src/internal/interval/interval_set_union.cpp
 )
 target_include_directories(interval PUBLIC include/internal/interval)
 
@@ -75,7 +76,8 @@ target_link_libraries(compile_test PRIVATE compile GTest::gtest_main)
 add_executable(interval_test
     tests/internal/interval/interval_cursor_test.cpp
     tests/internal/interval/cursor_merger_test.cpp
-    )
+    tests/internal/interval/interval_set_union_test.cpp
+)
 target_link_libraries(interval_test PRIVATE interval GTest::gtest_main)
 
 
