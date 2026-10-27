@@ -243,11 +243,11 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
                 if (is_final(target_state_set)) dfa.add_final_state(dfa_target);
                 pending.push(target_state_set);
                 discovered_tab.emplace(target_state_set, dfa_target);
-                dfa.transition_table_[dfa_state].intervals_.emplace_back(DFAInterval{start, end, dfa_target});
+                dfa.transition_table_[dfa_state].emplace_back(DFAInterval{start, end, dfa_target});
             }
             else{
                 size_t dfa_target = it->second;
-                dfa.transition_table_[dfa_state].intervals_.emplace_back(DFAInterval{start, end, dfa_target});
+                dfa.transition_table_[dfa_state].emplace_back(DFAInterval{start, end, dfa_target});
             }
         }
         pending.pop();

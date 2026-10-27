@@ -40,7 +40,7 @@ target_link_libraries(expression PRIVATE utility)
 add_library(automata STATIC 
     src/internal/automata/charset.cpp
     src/internal/automata/nfa.cpp
-    src/internal/automata/dfa_transition.cpp
+    src/internal/automata/dfa.cpp
 )
 target_include_directories(automata PUBLIC include/internal/automata)
 target_link_libraries(automata PUBLIC interval)
@@ -66,7 +66,6 @@ target_link_libraries(utf8_test PRIVATE utility GTest::gtest_main)
 add_executable(automata_test 
     tests/internal/automata/nfa_test.cpp
     tests/internal/automata/charset_test.cpp
-    tests/internal/automata/dfa_transition_test.cpp
 )
 target_link_libraries(automata_test PRIVATE automata GTest::gtest_main)
 

@@ -3,7 +3,8 @@
 #include <vector>
 #include <cstdint>
 
-#include "dfa_transition.hpp"
+#include "interval.hpp"
+
 
 class NFA;
 
@@ -16,10 +17,7 @@ public:
     ~DFA() = default;
 
     //根据给出的状态集合和输入码点，计算 DFA 的下一状态
-    size_t move(size_t state, uint32_t codepoint) const {
-        const DFATransition &dfa_transition = transition_table_[state];
-        return dfa_transition.next_state(codepoint);
-    };
+    size_t move(size_t state, uint32_t codepoint) const;
 
     // 消耗一个码点
     void consume(uint32_t codepoint){
@@ -43,6 +41,8 @@ public:
 
     friend DFA nfa_to_dfa(const NFA &nfa, bool minimize);
 
+    friend DFA minimize_dfa(const DFA &dfa);
+
     // 禁止拷贝构造和拷贝赋值
     DFA(const DFA&) = delete;
     DFA& operator=(const DFA&) = delete;
@@ -52,7 +52,7 @@ public:
     DFA& operator=(DFA&&) noexcept = default;
 private:
     // 状态转移表，索引为当前状态，值记录了该状态的所有转移条件和目标状态
-    std::vector<DFATransition> transition_table_;
+    std::vector<DFAIntervalSet> transition_table_;
     size_t current_state_;
     std::vector<size_t> final_state_set_;
 
