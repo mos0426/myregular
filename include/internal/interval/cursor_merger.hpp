@@ -3,14 +3,14 @@
 #include "interval_cursor.hpp"
 #include "dfa_interval_cursor.hpp"
 
-template<typename T>
+template<typename T, typename U>
 class CursorMerger;
 
-using IntervalCursorMerger = CursorMerger<IntervalCursor>;
-using DFAIntervalCursorMerger = CursorMerger<DFAIntervalCursor>;
+using IntervalCursorMerger = CursorMerger<IntervalCursor, Endpoint>;
+using DFAIntervalCursorMerger = CursorMerger<DFAIntervalCursor, DFAEndpoint>;
 
 
-template<typename T>
+template<typename T, typename U>
 class CursorMerger{
 public:
     CursorMerger() = default;
@@ -30,7 +30,7 @@ public:
     // 返回下一个端点和标签；
     // 确保 more() 为 true 才可执行 next()
     // 若出现码点值相同的端点，优先输入端点属性为终点的端点(即 Endpoint.is_start == false)
-    std::pair<Endpoint, size_t> next(){
+    std::pair<U, size_t> next(){
         assert(more());
         std::pair<Endpoint, size_t> result = std::move(buffer_);
         if (cursors_.empty()){
@@ -50,7 +50,7 @@ public:
         return result;
     };
 
-    std::pair<Endpoint, size_t> get_next() const {
+    std::pair<U, size_t> get_next() const {
         return buffer_;
     }
 
@@ -61,7 +61,7 @@ private:
     std::vector<T> cursors_;
     // 缓存 next() 的结果
     // pair.second 为端点的标签 (label)
-    std::pair<Endpoint, size_t> buffer_;
+    std::pair<U, size_t> buffer_;
     bool has_more_;
     
     // 上浮 cursors_[i]， 直到 cursors_[i] 大于它的父节点 

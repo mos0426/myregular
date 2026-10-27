@@ -3,20 +3,20 @@
 #include "dfa_interval_cursor.hpp"
 
 
-DFAIntervalCursor::DFAIntervalCursor(const DFAIntervalSet &dfa_intervalset):
-    dfa_intervalset_(&dfa_intervalset), current_it_(dfa_intervalset_->begin()){
-        current_ = Endpoint{current_it_->start, true};
+DFAIntervalCursor::DFAIntervalCursor(const DFAIntervalSet &dfa_intervalset, size_t label):
+    dfa_intervalset_(&dfa_intervalset), current_it_(dfa_intervalset_->begin()), label_(label){
+        current_ = DFAEndpoint{current_it_->start, true, current_it_->target_state};
     }
 
 
-Endpoint DFAIntervalCursor::next(){
+DFAEndpoint DFAIntervalCursor::next(){
     assert(more());
     if (current_.is_start){
-        current_ = Endpoint{current_it_->end, false};
+        current_ = DFAEndpoint{current_it_->end, false, current_it_->target_state};
         ++current_it_;
     }
     else{ // !current_.is_start
-        current_ = Endpoint(current_it_->start, true);
+        current_ = DFAEndpoint(current_it_->start, true, current_it_->target_state);
     }
     return current_;
 }
