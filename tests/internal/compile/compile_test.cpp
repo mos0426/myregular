@@ -4,7 +4,7 @@
 #include "compile.hpp"
 #include "parse.hpp"
 
-TEST(CompileTest, Concatneation){
+TEST(CompileTest, Concatenation){
     {
         std::string expression = "123456789";
         std::string_view sv = expression;

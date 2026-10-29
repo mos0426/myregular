@@ -195,7 +195,7 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
     // 记录已经发现过的状态集和dfa状态的映射表，包括待处理的(pending_state_sets) 和已经处理过的
     std::unordered_map<std::vector<size_t>, size_t, StateSetHash> discovered_tab;
 
-        // 判断是否属于最终状态
+    // 判断是否属于最终状态
     const std::vector<size_t> &nfa_final_state_set = nfa.final_state_set_;
     auto is_final = [&nfa_final_state_set](const std::vector<size_t> &state_set) -> bool {
         auto it = nfa_final_state_set.begin(), it2 = state_set.begin();

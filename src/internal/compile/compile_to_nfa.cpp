@@ -56,27 +56,27 @@ namespace{
     size_t compile_union(const UnionNode &node, NFA &nfa, size_t input_state){
         size_t output_state = nfa.new_state();
 
-        std::vector<std::reference_wrapper<AST>> union_opereans;
+        std::vector<std::reference_wrapper<AST>> union_operands;
         // 展平连续的 union 节点
-        auto flatten = [&union_opereans](auto &&self, const UnionNode &node) -> void {
+        auto flatten = [&union_operands](auto &&self, const UnionNode &node) -> void {
             if (std::holds_alternative<UnionNode>(node.left->data)){
                 self(self, std::get<UnionNode>(node.left->data)); 
             }
-            else union_opereans.push_back(*node.left);
+            else union_operands.push_back(*node.left);
 
             if (std::holds_alternative<UnionNode>(node.right->data)){
                 self(self, std::get<UnionNode>(node.right->data));
             }
-            else union_opereans.push_back(*node.right);
+            else union_operands.push_back(*node.right);
         };
 
         flatten(flatten, node);
         
-        for (auto operean: union_opereans){
-            size_t operean_input_state = nfa.new_state();
-            size_t operean_output_state =  compile_(operean.get(), nfa, operean_input_state);
-            nfa.add_epsilon_transition(input_state, operean_input_state);
-            nfa.add_epsilon_transition(operean_output_state, output_state);
+        for (auto operand: union_operands){
+            size_t operand_input_state = nfa.new_state();
+            size_t operand_output_state =  compile_(operand.get(), nfa, operand_input_state);
+            nfa.add_epsilon_transition(input_state, operand_input_state);
+            nfa.add_epsilon_transition(operand_output_state, output_state);
         }
 
         return output_state;
