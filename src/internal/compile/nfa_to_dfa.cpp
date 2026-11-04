@@ -17,11 +17,11 @@
 #include "nfa.hpp"
 
 namespace{
-    class SubsetIntervalsCursor{
+    class SubsetIntervalMergerCursor{
     public:
-        SubsetIntervalsCursor() = delete;
+        SubsetIntervalMergerCursor() = delete;
 
-        SubsetIntervalsCursor(std::vector<const NFATransition*> ps){
+        SubsetIntervalMergerCursor(std::vector<const NFATransition*> ps){
             assert(!ps.empty());
 
             std::vector<IntervalCursor> cursors;
@@ -232,7 +232,7 @@ DFA nfa_to_dfa(const NFA &nfa, bool minimize){
         }
 
         // 子集的边转换成 dfa 的边
-        SubsetIntervalsCursor cursor = SubsetIntervalsCursor(processing_nfa_transitions);
+        SubsetIntervalMergerCursor cursor = SubsetIntervalMergerCursor(processing_nfa_transitions);
         while (cursor.more()){
             auto [start, end, target_state_set] = cursor.next();
             target_state_set = nfa.epsilon_closure(target_state_set);
