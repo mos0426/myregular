@@ -2,6 +2,7 @@
 
 
 #include "interval_cursor.hpp"
+#include "interval.hpp"
 
 
 IntervalCursor::IntervalCursor(const IntervalSet &intervalset, size_t label):
@@ -17,7 +18,7 @@ Endpoint IntervalCursor::next(){
         ++current_it_;
     }
     else{ // !current_.is_start
-        current_ = Endpoint(current_it_->start, true);
+        current_ = Endpoint{current_it_->start, true};
     }
     return current_;
 };

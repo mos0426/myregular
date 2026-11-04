@@ -54,6 +54,14 @@ struct SubsetInterval{
 };
 
 
+struct SubsetEndpoint{
+    // SubsetInterval 上的端点，带有区间上目标状态集 (target state set) 信息 
+    uint32_t codepoint;
+    bool is_start;
+    std::vector<size_t> target_state_set;
+};
+
+
 // 码点区间集，具体表现可视作在数轴上码点区间的正序排列；
 // 码点区间集内不会存在有两个或多个区间重合的情况 (包括相交，包含，首尾相接)
 using IntervalSet = std::vector<Interval>;
@@ -61,8 +69,14 @@ using IntervalSet = std::vector<Interval>;
 
 // DFA 码点区间集，具体表现可视作数轴上码点区间的正序排列;
 // 每个区间带有一个目标状态, 可以视为一个 DFA 上某个指定状态出发的所有转移边的聚合;
-// 区间集内不会存在相交的区间，可能回出现首尾相接的情况；
+// 区间集内不会存在相交的区间，可能会出现首尾相接的情况;
 using DFAIntervalSet = std::vector<DFAInterval>;
+
+
+// 子集构造法中表示某个子集的可以转移的码点区间集, 具体表现可以视作数轴上码点区间的正序排列;
+// 每个区间带一个多个目标状态，可以视作一个状态子集在某个码点区间上可以转移的状态集；
+// 区间集内不会存在相交的区间，可能会出现首尾相接的情况;
+using SubsetIntervalSet = std::vector<SubsetInterval>;
 
 
 // 检查 interval set 的合法性

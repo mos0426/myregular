@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "dfa_interval_cursor.hpp"
+#include "interval.hpp"
 
 
 DFAIntervalCursor::DFAIntervalCursor(const DFAIntervalSet &dfa_intervalset, size_t label):
@@ -16,7 +17,7 @@ DFAEndpoint DFAIntervalCursor::next(){
         ++current_it_;
     }
     else{ // !current_.is_start
-        current_ = DFAEndpoint(current_it_->start, true, current_it_->target_state);
+        current_ = DFAEndpoint{current_it_->start, true, current_it_->target_state};
     }
     return current_;
 }
