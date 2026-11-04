@@ -2,12 +2,14 @@
 
 #include "interval_cursor.hpp"
 #include "dfa_interval_cursor.hpp"
+#include "subset_interval_cursor.hpp"
 
 template<typename T, typename U>
 class CursorMerger;
 
 using IntervalCursorMerger = CursorMerger<IntervalCursor, Endpoint>;
 using DFAIntervalCursorMerger = CursorMerger<DFAIntervalCursor, DFAEndpoint>;
+using SubsetIntervalCursorMerger = CursorMerger<SubsetIntervalCursor, SubsetEndpoint>;
 
 
 template<typename T, typename U>
