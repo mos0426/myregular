@@ -1,6 +1,7 @@
 #include <vector>
 #include <cassert>
 #include <utility>
+#include <numeric>
 
 #include "compile.hpp"
 #include "dfa.hpp"
@@ -51,7 +52,7 @@ namespace{
                 if (current_end_ != 0){
                     push_interval();
                     refcount_.emplace(it, std::make_pair(endpoint.target_state, 1));
-                    remove_zero_count();
+                    clear_zero_refcount();
                     // 插入新的端点计数前，refcount 不为空, 那么current_end_ 和 输入的 endpoint 之间还纯在一个区间
                     if (refcount_.size() > 1){
                         current_start_ = current_end_;
@@ -106,7 +107,7 @@ namespace{
         void finish() const {
             assert(current_end_ != 0);
             push_interval();
-            assert(!remove_zero_count());
+            assert(!clear_zero_refcount());
             assert(refcount_.empty());
         };
 
@@ -129,7 +130,7 @@ namespace{
         }
         
         // 清除 refcount_ 内计数为 0 的元素
-        void remove_zero_count(){
+        void clear_zero_refcount(){
             auto it = refcount_.begin();
             while (it != refcount_.end()){
                 if (it->second == 0){
@@ -184,4 +185,284 @@ namespace{
         
         return ans;
     }
+
+    class SubsetMergerCursor{
+    // 用于 dfa 最小化中求状态集的反向目标状态集;
+    // next() 按照区间的正序推出反向转移目标状态集流, 不会推出区间范围, 因为在
+    // dfa 最小化过程中不需要这个信息.
+    public:
+        SubsetMergerCursor() = delete;
+        SubsetMergerCursor(SubsetIntervalCursorMerger &merger):
+        merger_(merger), refcount_({}), current_end_(0), has_more_(true) 
+        {
+            assert(merger.more());
+            buffer_ = SubsetEndpoint{0, 0, {}};
+            next(); // 把 buffer_ 内填入第一个区间.
+        };
+
+        // 由 merger_ 获取正序的端点流，处理端点流并更新 refcount_, 根据 refcount_ 的更新情况判断是否出现新区间
+        // 并返回新区间;
+        // 出现起点端点时，端点内的目标状态集 (endpoint.target_state_set) 在 refcount_ 的内对应的计数 +1, 出现
+        // refcount_ 未计数的元素插入对应的状态的一次计数;
+        // 出现终点端点时, 端点内的目标状态集 (endpoint.target_state_set) 在 refcount_ 的内对应的计数 -1, 理论
+        // 上来说, 此时不会存在状态在 refcount_ 上未有计数;
+        std::vector<size_t> next(){
+            assert(more());
+
+            if (!merger_.more()){
+                has_more_ = false;
+                return buffer_;
+            }
+
+            auto [endpoint, _] = merger_.next();
+            
+            // 确保每次都把 merger_ 重合的端点推出来，下一个 next() 得到得端点和上一个 next() 的最末尾的
+            // 端点不重合;
+            if (endpoint.is_start){
+
+                // refcount_ 为空, endpoint 是新区间的起点.
+                if (refcount_.empty()){
+                    current_start_ = endpoint.codepoint;
+                    assert(current_end_ == 0); // 确定未出现新区间终点
+                    insert_refcount(endpoint.target_state_set);
+                    // 处理所有和 endpoint 重合的端点.
+                    while (merger_.get_next().first.codepoint == endpoint.codepoint){
+                        auto [e, _] = merger_.next();
+                        insert_refcount(refresh_refcount(e.target_state_set, true));
+                    }
+                    // 新区间终点未出现, 继续看下一个端点.
+                    return next();
+                }
+                // refcount 不为空, endpoint 是新区间的终点, 是下一个区间的起点.
+                else{ // !refcount_.empty()
+                    assert(current_end_ == 0); // 确定未出现新区间终点
+                    auto insert_record = refresh_refcount(endpoint.target_state_set);
+
+                    // 未产生新的计数, 跳过目前端点，继续看下一个端点.
+                    if (insert_record.empty()){
+                        return next();
+                    }
+
+                    // 产生新的计数, 出现新的区间.
+                    current_end_ = endpoint.codepoint;
+                    auto new_interval = push_subset_interval();
+                    current_start_ = endpoint.codepoint;
+                    current_end_ = 0;
+                    insert_refcount(insert_record);
+
+                    // 处理所有和 endpoint 重合的端点.
+                    while (merger_.get_next().first.codepoint == endpoint.codepoint){
+                        auto [e, _] = merger_.next();
+                        insert_refcount(refresh_refcount(e.target_state_set, true));
+                    }
+                    if (merger_buffer(new_interval)){
+                        return next();
+                    }
+                    else{
+                        auto result = std::move(buffer_);
+                        buffer_ = std::move(new_interval);
+                        return result;
+                    }
+                }
+            }
+            else{ // !endpoint.is_start
+                assert(!refcount_.empty());
+                assert(current_end_ == 0);
+                refresh_refcount(endpoint.target_state_set, false);
+                // 处理端点类型为终点的重合端点.
+                while (
+                    merger_.more() &&
+                    !merger_.get_next().first.is_start && 
+                    merger_.get_next().first.codepoint == endpoint.codepoint
+                ){
+                    auto [e, _] = merger_.next();
+                    refresh_refcount(e.target_state_set, false);
+                }
+
+                // 如果 refcount_ 出现计数为 0 的元素, 那就意味着出现新区间;
+                // 相反则未出现新区间, 跳过当前端点, 继续看下一个端点.
+                if (check_zero_refcount()){
+                    current_end_ = endpoint.codepoint;
+                    auto new_interval = push_subset_interval();
+                    clear_zero_refcount();
+                    current_start_ = endpoint.codepoint;
+                    // 处理端点类型为起点的重合端点;
+                    // 先前已经处理完所有端点类型为终点的重合端点, 所以后续出现的所有重合端点的类型都是起点.
+                    while (
+                        merger_.more() &&
+                        merger_.get_next().first.codepoint == endpoint.codepoint
+                    ){
+                        auto [e, _] = merger_.next();
+                        insert_refcount(refresh_refcount(e.target_state_set));
+                    }
+                    if (merger_buffer(new_interval)){
+                        return next();
+                    }
+                    auto result = std::move(buffer_);
+                    buffer_ = std::move(new_interval);
+                    return result;
+                }
+                else{ // !check_zero_refcount()
+                    return next();
+                }
+
+            }
+
+            
+        };
+
+        bool more(){return has_more_;};
+
+    private:
+        SubsetIntervalCursorMerger &merger_;
+        // refcount_ 用于反向目标状态的计数;
+        // refcount_ 在所有操作过程中保持按照反向目标状态的数值大小正序排列.
+        std::vector<std::pair<size_t, int>> refcount_;
+        // 记录当前区间的起点;
+        uint32_t current_start_;
+        // 记录已经出现的可能的区间终点, 如果未出现可能的的区间终点, current_end_ = 0
+        uint32_t current_end_;
+        // 目前接收的端点的码点位置;
+        uint32_t current_;
+        // 生成的区间的缓存, next() 生成新区间时，对照缓存, 判断区间是否可合并(首尾相接, 目标状态集相等),
+        // 可合并时会先合并, 然后继续找新区间，直到新区间不能和 buffer_ 合并;
+        SubsetInterval buffer_;
+        bool has_more_;
+
+        std::vector<size_t> push_subset_interval(){
+            std::vector<size_t> target_state_set;
+            target_state_set.reserve(refcount_.size());
+            for (auto c: refcount_){
+                target_state_set.push_back(c.first);
+            }
+            return SubsetInterval(current_start_, current_end_, std::move(target_state_set));
+        }
+        
+        // 若 buffer_ 和 other 首尾相接并且目标状态集相等，合并 buffer_ 和 other 并把合并结果更新 buffer_, 返回 true;
+        // 否则, 返回 false;
+        bool merger_buffer(SubsetInterval &other){
+            
+            // 判断是否首尾相接
+            if (buffer_.end == other.start){
+                // 判断目标状态集是否相等
+                if (buffer_.target_state_set == other.target_state_set){
+                    buffer_.end = other.end;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 更新 refcount, 若 is_start 为 true, 计数 +1 , 若 is_start 为 false , 计数 -1 ;
+        // 返回需要插入计数的记录;
+        // 返回结果记录需要插入元素和需要插入 refcount 位置的索引;
+        // 需要插入的元素后续插入的位置在记录的 refcount 的插入位置的后面;
+        std::vector<pair<size_t, int>> refresh_refcount(std::vector<size_t> &state_set, bool is_start){
+            if (is_start){
+                // i 是 state_set 的索引, j 是 refcount_ 的索引
+                int i = 0, j = 0;
+                // 记录需要插入元素和需要插入 refcount 位置的索引;
+                // 需要插入的元素后续插入的位置在记录的 refcount 的插入位置的前面;
+                std::vector<std::pair<size_t, int>> insert_record;
+                while (i < state_set.size() && j < refcount_.size()){
+                    if (state_set[i] < refcount_[j].first){
+                        insert_record.emplace_back(std::make_pair(state_set[i], j));
+                        ++i;
+                    }
+                    else if (state_set[i] > refcount_[j].first){
+                        ++j;
+                    }
+                    else{ // state_set[i] == refcount_[j].first
+                        ++refcount_[j];
+                        ++i, ++j;
+                    }
+                }
+                for (; i < state_set.size(); ++i){
+                    insert_record.emplace_back(std::make_pair(state_set[i], refcount_.size()));
+                }
+                return insert_record;
+            }
+            else{ // !is_start
+                auto it1 = state_set.begin();
+                auto it2 = refcount_.begin();
+                while (it1 != state_set.end()){
+                    if (*it1 == it2->first){
+                        --it2->second;
+                        assert(it2->second >= 0);
+                        ++it1, ++it2;
+                    }
+                    else if (*it1 > it2->first){
+                        ++it2;
+                    }
+                    else{
+                        // 正常来说不可能出现 state_set 内的元素在 refcount_ 内没有计数;
+                        assert(false);
+                    }
+                    assert(it2 != refcount_.end());
+                }
+                return {};
+            }
+        };
+        
+        void insert_refcount(std::vector<pair<size_t, int>> &insert_record){
+            int l_idx = refcount_.size();
+            refcount_.resize(refcount_.size() + insert_record.size());
+            int n = insert_record.size() - 1;
+            int r_idx = refcount_.size() - 1;
+
+            // 插入点最末尾的情况.
+            while (insert_record[n] == refcount_.size()){
+                refcount_[r_idx] = std::make_pair(insert_record[n].first, 1);
+                --r_idx;
+                --n;
+                assert(n >= 0);
+                assert(r_idx >= 0);
+            }
+
+            while (l_idx >= 0 && n >= 0){
+                if (l_idx == insert_record[n].second){
+                    refcount_[r_idx] = refcount_[l_idx];
+                    --r_idx, --l_idx;
+                    refcount_[r_idx] = std::make_pair(insert_record[n].first, 1);
+                    --r_idx, --n;
+                }
+                else{ // l_idx != insert_record[n].second
+                    refcount_[r_idx] = refcount_[l_idx];
+                    --r_idx, --l_idx;
+                }
+            }
+        }
+
+        // 清除 refcount_ 内计数为 0 的元素.
+        void clear_zero_refcount(){
+            auto it = refcount_.begin();
+            while (it != refcount_.end()){
+                if (it->second != 0) ++it;
+                else{
+                    // 需要删除的元素的起点位置
+                    auto it2 = it;
+                    ++it;
+                    while (it != refcount_.end()){
+                        if (it->second != 0){
+                            *it2 = *it;
+                            ++it, ++it2;
+                        }
+                        else{
+                            ++it;
+                        }
+                    }
+                    refcount_.erase(it2, refcount_.end());
+                }
+            } 
+        }
+
+        // 检查 refcount_ 是否存在计数为 0 的元素.
+        bool check_zero_refcount(){
+            for (auto c: refcount_){
+                if (c.second == 0) return true;
+            }
+            return false;
+        }
+    }
+
 }
