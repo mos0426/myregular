@@ -171,19 +171,6 @@ namespace{
         }
     };
 
-
-    struct StateSetHash {
-        // State Set 的哈希函数，使用 Boost 风格的 hash_combine 算法。
-        // state 具体表现为正序排列且无重复元素的 std::vector<size_t>
-        size_t operator()(const std::vector<size_t> &states) const {
-            size_t h = 0;
-            for (size_t s : states) {
-                h ^= std::hash<size_t>{}(s) + 0x9e3779b9 + (h << 6) + (h >> 2);
-            }
-            return h;
-        }
-    };
-
 }
 
 
