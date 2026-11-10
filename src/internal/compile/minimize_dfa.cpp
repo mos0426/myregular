@@ -311,7 +311,7 @@ namespace{
             
         };
 
-        bool more(){return has_more_;};
+        bool more() const {return has_more_;};
 
     private:
         SubsetIntervalCursorMerger &merger_;
@@ -329,7 +329,7 @@ namespace{
         SubsetInterval buffer_;
         bool has_more_;
 
-        std::vector<size_t> push_subset_interval(){
+        std::vector<size_t> push_subset_interval() const {
             std::vector<size_t> target_state_set;
             target_state_set.reserve(refcount_.size());
             for (auto c: refcount_){
@@ -457,7 +457,7 @@ namespace{
         }
 
         // 检查 refcount_ 是否存在计数为 0 的元素.
-        bool check_zero_refcount(){
+        bool check_zero_refcount() const {
             for (auto c: refcount_){
                 if (c.second == 0) return true;
             }
