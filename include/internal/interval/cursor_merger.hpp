@@ -34,7 +34,7 @@ public:
     // 若出现码点值相同的端点，优先输入端点属性为终点的端点(即 Endpoint.is_start == false)
     std::pair<U, size_t> next(){
         assert(more());
-        std::pair<Endpoint, size_t> result = std::move(buffer_);
+        std::pair<U, size_t> result = std::move(buffer_);
         if (cursors_.empty()){
             has_more_ = false;
             return result;
