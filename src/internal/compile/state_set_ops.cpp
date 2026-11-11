@@ -1,7 +1,5 @@
 #include <vector>
 
-#include "state_set_ops.hpp"
-
 
 bool state_set_include(const std::vector<size_t> &first, const std::vector<size_t> &second){
     auto first_it = first.begin(), second_it = second.begin();
@@ -64,7 +62,6 @@ std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std:
     return new_state_set;
 }
 
-
 void state_set_insert(std::vector<size_t> &state_set, size_t item){
     auto it = state_set.begin();
     while (it != state_set.end()){
@@ -77,28 +74,4 @@ void state_set_insert(std::vector<size_t> &state_set, size_t item){
     }
     state_set.push_back(item);
     return ;
-}
-
-
-SplitResult split_by(const std::vector<size_t> &first, const std::vector<size_t> &second){
-    SplitResult result{{}, {}};
-    auto it1 = first.begin(), it2 = second.begin();
-    while (it1 != first.end() && it2 != second.end()){
-        if (*it1 < *it2){
-            result.difference.push_back(*it1);
-            ++it1;
-        }
-        else if (*it1 > *it2) ++it2;
-        else{ // *it1 == *it2
-            result.intersection.push_back(*it1);
-            ++it1, ++it2;
-        }
-    }
-    if (it1 != first.end()){
-        while (it1 != first.end()){
-            result.difference.push_back(*it1);
-            ++it1;
-        }
-    }
-    return result;
 }
