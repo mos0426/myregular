@@ -16,6 +16,11 @@ inline bool state_set_contain(const std::vector<size_t> &state_set, size_t state
 // 计算 first 和 second 的并集并返回
 std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std::vector<size_t> &second);
 
+// 向一个 state set 中添加一个元素, 添加完后 state set 内保持正序排列;
+// 内部实现采用的是线性扫描的方式;
+// 不会添加重复的元素.
+void state_set_insert(std::vector<size_t> &state_set, size_t item);
+
 
 struct StateSetHash {
     // State Set 的哈希函数，使用 Boost 风格的 hash_combine 算法。

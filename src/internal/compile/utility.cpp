@@ -62,5 +62,16 @@ std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std:
     return new_state_set;
 }
 
-
-
+void state_set_insert(std::vector<size_t> &state_set, size_t item){
+    auto it = state_set.begin();
+    while (it != state_set.end()){
+        if (*it < item) ++it;
+        else if (*it > item){
+            state_set.insert(it, item);
+            return ;
+        }
+        else return;
+    }
+    state_set.push_back(item);
+    return ;
+}
