@@ -12,7 +12,7 @@
 #include "interval_cursor.hpp"
 #include "cursor_merger.hpp"
 #include "charset.hpp"
-#include "utility.hpp"
+#include "state_set_ops.hpp"
 #include "dfa.hpp"
 #include "nfa.hpp"
 

@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "compile.hpp"
+#include "state_set_ops.hpp"
 #include "dfa.hpp"
 #include "interval.hpp"
 #include "dfa_interval_cursor.hpp"

@@ -51,7 +51,7 @@ add_library(compile STATIC
     src/internal/compile/compile_to_nfa.cpp
     src/internal/compile/nfa_to_dfa.cpp
     src/internal/compile/minimize_dfa.cpp
-    src/internal/compile/utility.cpp
+    src/internal/compile/state_set_ops.cpp
   )
 target_include_directories(compile PUBLIC include/internal/compile)
 target_link_libraries(compile PUBLIC automata expression)
