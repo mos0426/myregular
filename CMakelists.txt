@@ -50,6 +50,7 @@ target_link_libraries(automata PUBLIC interval)
 add_library(compile STATIC 
     src/internal/compile/compile_to_nfa.cpp
     src/internal/compile/nfa_to_dfa.cpp
+    src/internal/compile/minimize_dfa.cpp
     src/internal/compile/utility.cpp
   )
 target_include_directories(compile PUBLIC include/internal/compile)
@@ -102,6 +103,7 @@ gtest_discover_tests(interval_test)
 target_compile_options(expression PRIVATE -Wall  -pedantic)
 
 # MSVC 的警告选项
+# cspell:ignore MSVC
 if(MSVC)
     target_compile_options(expression PRIVATE /W4)
     target_compile_options(automata PRIVATE /W4)

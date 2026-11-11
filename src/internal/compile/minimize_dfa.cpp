@@ -159,7 +159,7 @@ namespace{
     // 反向转移表结构为 std::vector<SubsetInterval>
     // 具体表现为一个目标状态由码点区间可映射多个起始状态 
     std::vector<SubsetIntervalSet> build_reverse_transition_table(
-        std::vector<DFAIntervalSet> &transition_table
+        const std::vector<DFAIntervalSet> &transition_table
     ){
 
         std::vector<DFAIntervalCursor> cursors;
@@ -466,6 +466,6 @@ namespace{
             }
             return false;
         }
-    }
+    };
 
 }
