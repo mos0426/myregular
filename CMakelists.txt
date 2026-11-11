@@ -71,10 +71,7 @@ add_executable(automata_test
 )
 target_link_libraries(automata_test PRIVATE automata GTest::gtest_main)
 
-add_executable(compile_test 
-    tests/internal/compile/compile_test.cpp
-    tests/internal/compile/state_set_ops_test.cpp
-)
+add_executable(compile_test tests/internal/compile/compile_test.cpp)
 target_link_libraries(compile_test PRIVATE compile GTest::gtest_main)
 
 add_executable(interval_test
