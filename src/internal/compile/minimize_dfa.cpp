@@ -189,9 +189,8 @@ namespace{
     };
 
     class SubsetMergerCursor{
-    // 用于 dfa 最小化中求状态集的反向目标状态集;
-    // next() 按照区间的正序推出反向转移目标状态集流, 不会推出区间范围, 因为在
-    // dfa 最小化过程中不需要这个信息.
+    // 用于 dfa 最小化中求状态集的反向目标状态集和根据等价状态集求最小化转移状态表;
+    // next() 正序退出归并后的区间流.
     public:
         SubsetMergerCursor() = delete;
         SubsetMergerCursor(SubsetIntervalCursorMerger &merger):
@@ -208,12 +207,12 @@ namespace{
         // refcount_ 未计数的元素插入对应的状态的一次计数;
         // 出现终点端点时, 端点内的目标状态集 (endpoint.target_state_set) 在 refcount_ 的内对应的计数 -1, 理论
         // 上来说, 此时不会存在状态在 refcount_ 上未有计数;
-        std::vector<size_t> next(){
+        SubsetInterval next(){
             assert(more());
 
             if (!merger_.more()){
                 has_more_ = false;
-                return buffer_.target_state_set;
+                return buffer_;
             }
 
             auto [endpoint, _] = merger_.next();
@@ -263,7 +262,7 @@ namespace{
                     else{
                         auto result = std::move(buffer_);
                         buffer_ = std::move(new_interval);
-                        return result.target_state_set;
+                        return result;
                     }
                 }
             }
@@ -302,7 +301,7 @@ namespace{
                     }
                     auto result = std::move(buffer_);
                     buffer_ = std::move(new_interval);
-                    return result.target_state_set;
+                    return result;
                 }
                 else{ // !check_zero_refcount()
                     return next();
