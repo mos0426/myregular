@@ -16,6 +16,17 @@ inline bool state_set_contain(const std::vector<size_t> &state_set, size_t state
 // 计算 first 和 second 的并集并返回
 std::vector<size_t> state_set_union(const std::vector<size_t> &first, const std::vector<size_t> &second);
 
+
+struct SplitResult{
+    std::vector<size_t> difference;
+    std::vector<size_t> intersection;
+};
+
+// 用于 Hopcroft's algorithm 划分等价状态集;
+// 返回 first 被 second 划分的两个状态集, 分别是它们的差集 (first diff second) 和 交集 (first intersect second)
+SplitResult split_by(const std::vector<size_t> &first, const std::vector<size_t> &second);
+
+
 // 向一个 state set 中添加一个元素, 添加完后 state set 内保持正序排列;
 // 内部实现采用的是线性扫描的方式;
 // 不会添加重复的元素.
