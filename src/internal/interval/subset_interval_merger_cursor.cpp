@@ -4,6 +4,7 @@
 
 #include "subset_interval_merger_cursor.hpp"
 #include "cursor_merger.hpp"
+#include "interval.hpp"
 
 
 SubsetInterval SubsetIntervalMergerCursor::next(){
