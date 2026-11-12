@@ -10,6 +10,7 @@
 #include "interval.hpp"
 #include "dfa_interval_cursor.hpp"
 #include "subset_interval_cursor.hpp"
+#include "subset_interval_merger_cursor.hpp"
 #include "cursor_merger.hpp"
 
 namespace{
@@ -25,6 +26,7 @@ namespace{
 
         void feed(DFAEndpoint &endpoint){
             if (refcount_.empty()){
+                // refcount_ 为空时, 新接受到的下一个端点只能是起点
                 assert(endpoint.is_start);
                 current_start_ = endpoint.codepoint;
                 refcount_.emplace_back(std::make_pair(endpoint.target_state, 1));
@@ -32,6 +34,7 @@ namespace{
             }
 
             if (endpoint.is_start){
+                // it 记录可能出现的新计数的插入点
                 auto it = refcount_.begin();
                 while (it != refcount_.end()){
                     if (it->first < endpoint.target_state) ++it;
@@ -55,7 +58,7 @@ namespace{
                     push_interval();
                     refcount_.emplace(it, std::make_pair(endpoint.target_state, 1));
                     clear_zero_refcount();
-                    // 插入新的端点计数前，refcount 不为空, 那么current_end_ 和 输入的 endpoint 之间还纯在一个区间
+                    // 插入新的端点计数前，refcount 不为空, 那么current_end_ 和 输入的 endpoint 之间还存在一个区间
                     if (refcount_.size() > 1){
                         current_start_ = current_end_;
                         current_end_ = endpoint.codepoint;
@@ -78,10 +81,12 @@ namespace{
                 auto it = refcount_.begin();
                 if (current_end_ != 0){
                     // 出现下一个区间的终点，把目前区间推出，更新当前区间信息
+                    // 另外, 如果存在重合端点的情况交给下的代码处理
                     if (current_end_ != endpoint.codepoint){
                         push_interval();
                         current_start_ = current_end_;
                         current_end_ = 0;
+                        return ;
                     }
                 }
                 while (it != refcount_.begin()){
@@ -92,6 +97,7 @@ namespace{
                     }
                     else{
                         --it->second;
+                        // 非重合终点情况, 更新 current_end_
                         if (it->second == 0){
                             if (current_end_ == 0) current_end_ = endpoint.codepoint;
                         }
@@ -188,127 +194,9 @@ namespace{
         return ans;
     };
 
-    class SubsetMergerCursor{
-    // 用于 dfa 最小化中求状态集的反向目标状态集;
-    // next() 按照区间的正序推出反向转移目标状态集流, 不会推出区间范围, 因为在
-    // dfa 最小化过程中不需要这个信息.
-    public:
-        SubsetMergerCursor() = delete;
-        SubsetMergerCursor(SubsetIntervalCursorMerger &merger):
-        merger_(merger), refcount_({}), current_end_(0), has_more_(true) 
-        {
-            assert(merger.more());
-            buffer_ = SubsetInterval{0, 0, {}};
-            next(); // 把 buffer_ 内填入第一个区间.
-        };
 
-        // 由 merger_ 获取正序的端点流，处理端点流并更新 refcount_, 根据 refcount_ 的更新情况判断是否出现新区间
-        // 并返回新区间;
-        // 出现起点端点时，端点内的目标状态集 (endpoint.target_state_set) 在 refcount_ 的内对应的计数 +1, 出现
-        // refcount_ 未计数的元素插入对应的状态的一次计数;
-        // 出现终点端点时, 端点内的目标状态集 (endpoint.target_state_set) 在 refcount_ 的内对应的计数 -1, 理论
-        // 上来说, 此时不会存在状态在 refcount_ 上未有计数;
-        std::vector<size_t> next(){
-            assert(more());
+}
 
-            if (!merger_.more()){
-                has_more_ = false;
-                return buffer_.target_state_set;
-            }
-
-            auto [endpoint, _] = merger_.next();
-            
-            // 确保每次都把 merger_ 重合的端点推出来，下一个 next() 得到得端点和上一个 next() 的最末尾的
-            // 端点不重合;
-            if (endpoint.is_start){
-
-                // refcount_ 为空, endpoint 是新区间的起点.
-                if (refcount_.empty()){
-                    current_start_ = endpoint.codepoint;
-                    assert(current_end_ == 0); // 确定未出现新区间终点
-                    insert_refcount(refresh_refcount(endpoint.target_state_set, true));
-                    // 处理所有和 endpoint 重合的端点.
-                    while (merger_.get_next().first.codepoint == endpoint.codepoint){
-                        auto [e, __] = merger_.next();
-                        insert_refcount(refresh_refcount(e.target_state_set, true));
-                    }
-                    // 新区间终点未出现, 继续看下一个端点.
-                    return next();
-                }
-                // refcount 不为空, endpoint 是新区间的终点, 是下一个区间的起点.
-                else{ // !refcount_.empty()
-                    assert(current_end_ == 0); // 确定未出现新区间终点
-                    auto insert_record = refresh_refcount(endpoint.target_state_set, true);
-
-                    // 未产生新的计数, 跳过目前端点，继续看下一个端点.
-                    if (insert_record.empty()){
-                        return next();
-                    }
-
-                    // 产生新的计数, 出现新的区间.
-                    current_end_ = endpoint.codepoint;
-                    auto new_interval = push_subset_interval();
-                    current_start_ = endpoint.codepoint;
-                    current_end_ = 0;
-                    insert_refcount(insert_record);
-
-                    // 处理所有和 endpoint 重合的端点.
-                    while (merger_.get_next().first.codepoint == endpoint.codepoint){
-                        auto [e, __] = merger_.next();
-                        insert_refcount(refresh_refcount(e.target_state_set, true));
-                    }
-                    if (merger_buffer(new_interval)){
-                        return next();
-                    }
-                    else{
-                        auto result = std::move(buffer_);
-                        buffer_ = std::move(new_interval);
-                        return result.target_state_set;
-                    }
-                }
-            }
-            else{ // !endpoint.is_start
-                assert(!refcount_.empty());
-                assert(current_end_ == 0);
-                refresh_refcount(endpoint.target_state_set, false);
-                // 处理端点类型为终点的重合端点.
-                while (
-                    merger_.more() &&
-                    !merger_.get_next().first.is_start && 
-                    merger_.get_next().first.codepoint == endpoint.codepoint
-                ){
-                    auto [e, __] = merger_.next();
-                    refresh_refcount(e.target_state_set, false);
-                }
-
-                // 如果 refcount_ 出现计数为 0 的元素, 那就意味着出现新区间;
-                // 相反则未出现新区间, 跳过当前端点, 继续看下一个端点.
-                if (check_zero_refcount()){
-                    current_end_ = endpoint.codepoint;
-                    auto new_interval = push_subset_interval();
-                    clear_zero_refcount();
-                    current_start_ = endpoint.codepoint;
-                    // 处理端点类型为起点的重合端点;
-                    // 先前已经处理完所有端点类型为终点的重合端点, 所以后续出现的所有重合端点的类型都是起点.
-                    while (
-                        merger_.more() &&
-                        merger_.get_next().first.codepoint == endpoint.codepoint
-                    ){
-                        auto [e, __] = merger_.next();
-                        insert_refcount(refresh_refcount(e.target_state_set, true));
-                    }
-                    if (merger_buffer(new_interval)){
-                        return next();
-                    }
-                    auto result = std::move(buffer_);
-                    buffer_ = std::move(new_interval);
-                    return result.target_state_set;
-                }
-                else{ // !check_zero_refcount()
-                    return next();
-                }
-
-            }
 
             
         };
