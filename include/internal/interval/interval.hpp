@@ -51,6 +51,12 @@ struct SubsetInterval{
     uint32_t start;
     uint32_t end;
     std::vector<size_t> target_state_set;
+
+    friend bool operator==(const SubsetInterval &first, const SubsetInterval &second){
+        return first.start == second.start &&
+               first.end == second.end &&
+               first.target_state_set == second.target_state_set;
+    };
 };
 
 

@@ -198,39 +198,9 @@ namespace{
 }
 
 
-            
-        };
 
-        bool more() const {return has_more_;};
 
-    private:
-        SubsetIntervalCursorMerger &merger_;
-        // refcount_ 用于反向目标状态的计数;
-        // refcount_ 在所有操作过程中保持按照反向目标状态的数值大小正序排列.
-        std::vector<std::pair<size_t, int>> refcount_;
-        // 记录当前区间的起点;
-        uint32_t current_start_;
-        // 记录已经出现的可能的区间终点, 如果未出现可能的的区间终点, current_end_ = 0
-        uint32_t current_end_;
-        // 目前接收的端点的码点位置;
-        uint32_t current_;
-        // 生成的区间的缓存, next() 生成新区间时，对照缓存, 判断区间是否可合并(首尾相接, 目标状态集相等),
-        // 可合并时会先合并, 然后继续找新区间，直到新区间不能和 buffer_ 合并;
-        SubsetInterval buffer_;
-        bool has_more_;
 
-        SubsetInterval push_subset_interval() const {
-            std::vector<size_t> target_state_set;
-            target_state_set.reserve(refcount_.size());
-            for (auto c: refcount_){
-                target_state_set.push_back(c.first);
-            }
-            return SubsetInterval(current_start_, current_end_, std::move(target_state_set));
-        }
-        
-        // 若 buffer_ 和 other 首尾相接并且目标状态集相等，合并 buffer_ 和 other 并把合并结果更新 buffer_, 返回 true;
-        // 否则, 返回 false;
-        bool merger_buffer(SubsetInterval &other){
             
             // 判断是否首尾相接
             if (buffer_.end == other.start){
