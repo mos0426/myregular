@@ -25,7 +25,10 @@ SubsetInterval SubsetIntervalMergerCursor::next(){
         if (refcount_.empty()){
             current_start_ = endpoint.codepoint;
             assert(current_end_ == 0); // 确定未出现新区间终点
-            insert_refcount(refresh_refcount(endpoint.target_state_set, true));
+            for (size_t state: endpoint.target_state_set) {
+                refcount_.emplace_back(std::make_pair(state, 1));
+            }
+
             // 处理所有和 endpoint 重合的端点.
             while (merger_.get_next().first.codepoint == endpoint.codepoint){
                 auto [e, __] = merger_.next();
