@@ -52,11 +52,11 @@ private:
     // 否则, 返回 false;
     bool merger_buffer(SubsetInterval &other);
 
-    // 更新 refcount, 若 is_start 为 true, 计数 +1 , 若 is_start 为 false , 计数 -1 ;
+    // 更新 refcount_, 若 is_start 为 true, 计数 +1 , 若 is_start 为 false , 计数 -1 ;
     // 返回需要插入计数的记录;
-    // 返回结果记录需要插入元素和需要插入 refcount 位置的索引;
+    // 返回结果记录需要插入元素和需要插入 refcount_ 位置的索引;
     // pair 的第一个元素为 需要插入的元素, 第二个元素为需要插入 refcount_ 位置的索引;
-    // 需要插入的元素后续插入的位置在记录的 refcount 的插入位置的后面;
+    // 需要插入的元素需要插入的位置在记录的 refcount_ 的插入位置的后面;
     std::vector<std::pair<size_t, size_t>> refresh_refcount(const std::vector<size_t> &state_set, bool is_start);
     
     void insert_refcount(const std::vector<std::pair<size_t, size_t>> &insert_record);
